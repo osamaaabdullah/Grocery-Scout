@@ -4,63 +4,68 @@ import json
 import doctest
 
 
-#method to get all the urls in the current JSON data
-def get_url(list_of_grocery_items: list) -> list:
+def get_store_items(store_name: str) -> dict:
     """
-    >>> get_url([{"url": "fb.com", "name": "osama"}, {"url": "ab.com","name": "osama"}])
-    ['fb.com', 'ab.com']
+    Get the dictionary of items given store name
+    
+    >>> get_store_items('No Frills')
+    {'https://www.nofrills.ca/large-grade-a-eggs/p/20812144001_EA\\n': {'product name': 'Large Grade A Eggs', 'price': 3.93, 'stock': 'available'}, 'https://www.nofrills.ca/boneless-skinless-chicken-breast/p/21430671_EA\\n': {'product name': 'Boneless Skinless Chicken Breast', 'price': 26.0, 'stock': 'available'}, 'https://www.nofrills.ca/100-coconut-water/p/20570506_EA\\n': {'product name': '100% Coconut Water', 'price': 2.99, 'stock': 'available'}}
     """
-    grocery_item_urls = []
-    for item in list_of_grocery_items:
-        grocery_item_urls.append(item['url'])
+    
+    with open("data.json") as read_file:
+        data = json.load(read_file)
         
-    return grocery_item_urls
+    dict_of_items = data[store_name]
+    return dict_of_items
 
-#method to check if a current url exists in the JSON data, if it exists return the index position
-def url_index(grocery_item_urls: list, url: str)->int:
-    """
-    >>> url_index(['fb.com', 'ab.com'], 'fb.com')
-    0
-    >>> url_index(['fb.com', 'ab.com'], 'osama.com')
-    -1
-    """
-    for url_link in grocery_item_urls:
-        if url_link == url:
-            return grocery_item_urls.index(url_link)
-    return -1
 
-def update_grocery_item(list_of_grocery_items:list, url: str, title: str, price: int):
+def item_exists(store_name: str, url: str) -> bool:
     """
-    >>> update_grocery_item([{"url": "fb.com", "name": "item1", "price": 5}], "osama.com", 'Osama', 10)
-    >>> update_grocery_item([{'url': 'fb.com', 'name': 'osama'}, {'url': 'ab.com', 'name': 'osama'}], 'fb.com', 'love', 15)
+    Retrieve the dictionary of items for a store and check if an item exists in the dictionary
+    >>> item_exists('No Frills', 'https://www.nofrills.ca/boneless-skinless-chicken-breast/p/21430671_EA\\n')
+    True
+    
+    >>> item_exists('No Frills', 'https://www.nofrills.ca/blueberries-1-2-pint/p/20152465001_EA\\n')
+    False
     """
     
+    store_items = get_store_items(store_name)
+    store_items_url = store_items.keys()
+    return url in store_items_url
+
+def add_item(store_name: str, url: str, product_name: str, price: float, stock: str) ->dict:
+    """Given that an item for a given url does not exist, add that item into the dictionary, else update the item"""
     
-    grocery_item_urls = get_url(list_of_grocery_items)
-    index = url_index(grocery_item_urls, url)
-    if index == -1:
-        product_data = {
-            "url": url,
-            "product name": title,
-            "price": price
-            } 
-        list_of_grocery_items.append(product_data)
-    else:
-        list_of_grocery_items[index]["product name"] = title
-        list_of_grocery_items[index]["price"] = price
+    current_items = get_store_items(store_name)
+    current_items[url] = {
+        'product_name': product_name,
+        'price': price,
+        'stock': stock
+    }
+    return current_items
 
-
-with open("data.json") as read_file:
-    data = json.load(read_file)
+def write_file(store_name: str, current_items: dict):
+    with open("data.json") as read_file:
+        data = json.load(read_file)        
     
-list_of_grocery_items = data['items']
-#product_path = ['items']
-
-
-def write_file(list_of_grocery_items: list):
-    update_file = {'items': list_of_grocery_items}
+    data[store_name] = current_items
     with open("data.json", mode = "w", encoding="utf-8") as write_file:
-        json.dump(update_file,write_file, indent=4)
+        json.dump(data, write_file, indent=4)
         write_file.write("\n"+ "\n")
 
-doctest.testmod()
+"""
+problems so far
+- url that is incorrect
+- url but with out of stock
+
+
+
+way later
+- location problem
+"""
+
+
+
+if __name__ == '__main__':
+    #add_item('No Frills', 'https://www.nofrills.ca/breakfast-sausage/p/21399630_EA', 'Breakfast Sausage', 9.99, 'available')
+    doctest.testmod()

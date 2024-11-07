@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
 
 #import JSON data parser
-from JSON_data import update_grocery_item, list_of_grocery_items, write_file
+from JSON_data_1 import add_item,write_file
 
 #assign a driver variable
 driver = webdriver.Chrome()
@@ -30,11 +30,11 @@ for url in url_list:
         title = find_title.text
         price_str = find_price.text
         price = float(price_str.replace('$',""))
-        update_grocery_item(list_of_grocery_items, url, title, price)
+        updated_item_dict = add_item('No Frills', url, title, price, 'available')
         
     #check if unavailable, gotta update stock later    
     except NoSuchElementException:
         continue
  
-write_file(list_of_grocery_items)    
+write_file('No Frills', updated_item_dict)    
 driver.quit()

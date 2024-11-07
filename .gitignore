@@ -1,0 +1,7 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+
+
+No_Frills.db
+JSON_data_1.py
+product_url.txt

@@ -1,30 +1,30 @@
 {
-    "items": [
-        {
-            "url": "fb.com",
-            "name": "osama",
-            "price": 5
+    "No Frills": {
+        "https://www.nofrills.ca/large-grade-a-eggs/p/20812144001_EA\n": {
+            "product_name": "Large Grade A Eggs",
+            "price": 3.93,
+            "stock": "available"
         },
-        {
-            "url": "ab.com",
-            "name": "osama",
-            "price": 10
+        "https://www.nofrills.ca/boneless-skinless-chicken-breast/p/21430671_EA\n": {
+            "product_name": "Boneless Skinless Chicken Breast",
+            "price": 26.0,
+            "stock": "available"
         },
-        {
-            "url": "https://www.nofrills.ca/large-grade-a-eggs/p/20812144001_EA\n",
-            "product name": "Large Grade A Eggs",
-            "price": 3.93
+        "https://www.nofrills.ca/100-coconut-water/p/20570506_EA\n": {
+            "product_name": "100% Coconut Water",
+            "price": 2.99,
+            "stock": "available"
         },
-        {
-            "url": "https://www.nofrills.ca/boneless-skinless-chicken-breast/p/21430671_EA\n",
-            "product name": "Boneless Skinless Chicken Breast",
-            "price": 26.0
+        "https://www.nofrills.ca/breakfast-sausage/p/21399630_EA": {
+            "product_name": "Breakfast Sausage",
+            "price": 9.99,
+            "stock": "available"
         },
-        {
-            "url": "https://www.nofrills.ca/100-coconut-water/p/20570506_EA\n",
-            "product name": "100% Coconut Water",
-            "price": 2.99
+        "https://www.nofrills.ca/the-world-s-best-egg-nog/p/20104019_EA": {
+            "product_name": "The World\u2019s Best Egg Nog",
+            "price": 3.39,
+            "stock": "available"
         }
-    ]
+    }
 }
 
