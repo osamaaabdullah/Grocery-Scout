@@ -16,6 +16,24 @@ def click_element(driver,selector,exception_message):
     except (NoSuchElementException, ElementClickInterceptedException) as e:
         print(f"{exception_message}: {e}")
         return False
+    
+def scrape_product_details(driver):
+    try:
+        return {
+            "url": driver.current_url,
+            "title": driver.find_element(By.CSS_SELECTOR, "h1[itemprop='name']").text,
+            "price": driver.find_element(By.CSS_SELECTOR, "span[itemprop='price']").text,
+            "walmart_item_no": driver.find_element(By.XPATH, "//h3[text()='Walmart Item #']/following-sibling::div/span").text,
+            "walmart_UPC": driver.find_element(By.XPATH, "//h3[text()='Universal Product Code (UPC check)']/following-sibling::div/span").text,
+            "walmart_cat_ID": driver.find_element(By.XPATH, "//h3[text()='Category ID']/following-sibling::div/span").text,
+            "walmart_SKU": driver.find_element(By.XPATH, "//h3[text()='SKU']/following-sibling::div/span").text,
+            "lowest_price": "",
+            "date_lowest_price": "" 
+        }
+    except NoSuchElementException:
+        print("Exception")
+        pass
+                    
 def scrape(url):
     """
     scrapes walmart pages from the given url, url must be page that contains all items from a specific category.
@@ -41,21 +59,8 @@ def scrape(url):
                     category_url = "/html/body/div/div[1]/div/div/div[1]/main/div/div/div/div/div[3]/div/div/section/div/div[" + str(i) + "]/div/div/a"
                     driver.click(category_url)
                     time.sleep(2)
-                    try:
-                        title = driver.find_element(By.CSS_SELECTOR, "h1[itemprop='name']")
-                        price = driver.find_element(By.CSS_SELECTOR, "span[itemprop='price']")
-                        #walmart_item_no_text = (driver.find_element(By.XPATH, "//h3[text()='Walmart Item #']")).text
-                        walmart_item_no = (driver.find_element(By.XPATH, "//h3[text()='Walmart Item #']/following-sibling::div/span")).text
-                        #walmart_UPC_text = (driver.find_element(By.XPATH, "//h3[text()='Universal Product Code (UPC check)']")).text
-                        walmart_UPC = (driver.find_element(By.XPATH, "//h3[text()='Universal Product Code (UPC check)']/following-sibling::div/span")).text
-                        #walmart_cat_ID_text = (driver.find_element(By.XPATH, "//h3[text()='Category ID']")).text
-                        walmart_cat_ID = (driver.find_element(By.XPATH, "//h3[text()='Category ID']/following-sibling::div/span")).text
-                        #walmart_SKU_text = (driver.find_element(By.XPATH, "//h3[text()='SKU']")).text
-                        walmart_SKU = (driver.find_element(By.XPATH, "//h3[text()='SKU']/following-sibling::div/span")).text
-                        print(walmart_item_no,walmart_UPC,walmart_cat_ID,walmart_SKU)
-                    except NoSuchElementException:
-                        print("Exception")
-                        pass
+                    product_details = scrape_product_details(driver)
+                    print(product_details)
                 except NoSuchElementException:
                     pass
                 finally:
