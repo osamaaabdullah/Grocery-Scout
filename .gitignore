@@ -1,5 +1,12 @@
 # Byte-compiled / optimized / DLL files
 __pycache__
 downloaded_files
+.env
+*.json
 
 product_url.txt
+test.py
+cookies.json
+repeated_postal_code_checker.py
+walmart_test.py
+nf_scraper_test.py
