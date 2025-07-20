@@ -100,7 +100,7 @@ def parse_stores_json(stores, data, current_postal):
         store_id = store_info["id"]
         store_postal = store_info["address"]["postalCode"]
         store_data = {
-            "storeName": store_info["displayName"],
+            "storeName": store_info.get("displayName"),
             "address": store_info["address"]
         }
         store_data["scraped"] = ("True" if store_postal == current_postal 
@@ -152,8 +152,6 @@ def save_store_info(data):
 
 if __name__ == "__main__":
     stores = {}
-    # store_queue = deque(["V7P 1S2", "T6X 1A4", "S7J 2R7", "R2C 3B4" , "P8N 2Z4", "H1S 2P3", "E1C 0E8", "A2A 1X3", "X1A 3T3"])
-    #store_queue = deque(["V7P 1S2", "T6X 1A4", "S7J 2R7", "R2C 3B4" , "P8N 2Z4", "H1S 2P3", "E1C 0E8", "A2A 1X3", "X1A 3T3",'R3K 2G6', 'R1A 4M1', 'R5G 0Y1', 'R1N 0G5', 'R6WW 0L8', 'P9N 4J1', 'P8N 0A2', 'P9A 2X6', 'H1S 2P3', 'H1S 1V6', 'H1N 2Z7', 'H1G 5X3', 'H4N 1K2', 'H3S 2B2', 'H7E 0A3', 'J4N 1A3', 'H4P 2T5', 'H1A 3W7', 'J4L 1M8', 'H7T 0G5', 'H4R 1P8', 'H8N 3E4', 'H7X 3S9', 'J7K 3B4', 'J6V 0A8', 'J3V 6J1', 'J4Y 0E6', 'H9S 3H7', 'E1C 0G3', 'E1A 5B2', 'B4H 4R7', 'E4E 1Y6', 'C1N 5J4', 'E1V 7T9', 'B4N 3E7', 'B0P 1N0', 'E2J 4Z2', 'C1E 2E5', 'E2M 4X5', 'E3A 0T3', 'E3C 1A3', 'B2N 7H3', 'B4A 0C2', 'B2H 2J6', 'E2A 6X2', 'B0V 1A0', 'B3S 1C5', 'B3B 0B5', 'A2A 1X3', 'A1V 1W8', 'A5A 2C3', 'A2H 1R4', 'A0E 2M0', 'X1A 3T3', 'V5M 2G7', 'V5H 4J1', 'V6X 0N1', 'V9L 6C6', 'V3J 1N5', 'V2S 8K1', 'V3L 3C2', 'V3M 5X2', 'V3B 5R9', 'V3T 2W3', 'V3W 1P8', 'V4E 2B1', 'V3R 7C1', 'V3B 0G6', 'V4M 0B2', 'V2X 8T1', 'V3Z 9N6', 'V2Y 1P3', 'V8B 0N1', 'V9T 6N8', 'V2V 0C6', 'V2R 0P9', 'V2T 0C5', 'T6X 1X2', 'T6N 0A9', 'T6T 0X2', 'T6J 5M8', 'T8B 1N1', 'T6W 0L7', 'T6A 0A1', 'T5R 5X1', 'T5G 3A6', 'T8H 0P5', 'T9E 8J7', 'T5Y 3B5', 'T5S 2V9', 'T5E 5R8', 'T6V 1J6', 'T8N 7A5', 'T8L 4N3', 'T9C 0A2', 'T7X 4H4', 'T7A 0A5', 'T9A 3T5', 'T4N 4C7', 'T4V 4T1', 'T0C 2L2', 'S7T 0B6', 'S7N 4Y1', 'S7M 1L2', 'S9A 4A9', 'T9V 2X3', 'T9W 0A2', 'S6V 8E3', 'S0L 1S0', 'S9H 0E5', 'T1B 0G4', 'R2C 3B4', 'R2J 2M8', 'R2M 5E6', 'R3M 1T6', 'R3G 3P8', 'R6W 0L8', 'R7A 7S1', 'R2V 4J6', 'R3P 2M4'])
     store_queue = deque(get_unscraped_postals())
     seen_postal = set(get_scraped_postals())
     while store_queue:
@@ -163,7 +161,8 @@ if __name__ == "__main__":
         data = scrape_store_info(postal_code)
         if data == {'message': 'Forbidden'} or data is None:
             store_queue.append(postal_code)
-            print(data)
+            print(f"Scrapping Failed: {postal_code}")
+            time.sleep(10)
             continue
         stores,postal_list = parse_stores_json(stores,data,postal_code)
         unseen_postal_list = [postal for postal in postal_list if postal not in seen_postal and postal not in store_queue]

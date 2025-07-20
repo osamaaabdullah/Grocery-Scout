@@ -5,8 +5,10 @@ downloaded_files
 *.json
 
 product_url.txt
+postal_list.txt
+walmart_store_id_scraper_v1 copy.py
+walmart_postal_code_scraper.py
 test.py
-cookies.json
 repeated_postal_code_checker.py
 walmart_test.py
 nf_scraper_test.py
