@@ -24,13 +24,19 @@ def retry_store():
     pass
 
 def get_store_data():
-    with open("walmart_store.json" , "r", encoding= "utf-8") as store_data:
-        data = json.load(store_data)
+    
+    with open("walmart_cookies.json" , "r", encoding= "utf-8") as f:
+        data = json.load(f)
+        scraped_id_list = list(data.keys())
+    
+    with open("walmart_store.json" , "r", encoding= "utf-8") as f:
+        data = json.load(f)
         store_id_list = []
         postal_code_list = []
         for store_id, store_info in data.items():
-            store_id_list.append(store_id)
-            postal_code_list.append(store_info.get("address").get("postalCode"))
+            if store_id not in scraped_id_list:
+                store_id_list.append(store_id)
+                postal_code_list.append(store_info.get("address").get("postalCode"))
     
     return store_id_list,postal_code_list
 
@@ -87,9 +93,9 @@ if __name__ == "__main__":
                 "https://www.walmart.ca/en/browse/home/heating-cooling-and-air-quality/10006-20129", "https://www.walmart.ca/en/browse/home/heating-cooling-and-air-quality/fans/tower-fans/10006_20129_31728_6000201275397",
                 "https://www.walmart.ca/en/browse/unlocked-phones/10003_20135_33218", "https://www.walmart.ca/en/browse/electronics/tv-video/tvs/10003_6000188523177_20049", "https://www.walmart.ca/en/browse/gifts-holidays/gifts/gift-cards/6000188914393_6000197172377_6000197915574"
                 ]
-    url = random.choice(url_list)
     store_id_list, postal_code_list = get_store_data()
     for store_id,postal_code in zip(store_id_list,postal_code_list):
+        url = random.choice(url_list)
         driver = Driver(uc=True, chromium_arg="--ignore-certificate-errors --disable-web-security")
         try:
             cookies_ACID, cookies_locDataV3, cookies_locGuestData, cookies_bm_sv = extract_store_cookies(driver, url, postal_code)   
