@@ -58,6 +58,6 @@ def generate_cookie(store_id, postal_code, city, state):
         json.dumps(location_data, separators=(',', ':')).encode()
     ).decode()
 
-    cookie = f"ACID = {acid}; hasACID= true; locDataV3 = {encoded_loc_data}; locGuestData = {encoded_loc_data}"
+    cookie = {'ACID': acid, 'hasACID': 'true', 'locDataV3': encoded_loc_data, 'locGuestData': encoded_loc_data}
     
     return cookie
