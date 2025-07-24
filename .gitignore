@@ -12,3 +12,4 @@ test.py
 repeated_postal_code_checker.py
 walmart_test.py
 nf_scraper_test.py
+walmart_cookies.py
