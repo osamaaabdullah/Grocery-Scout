@@ -6,6 +6,7 @@ import json
 from selectolax.parser import HTMLParser
 from dotenv import load_dotenv
 from walmart_cookie_generator import generate_cookie
+import time
 
 
 
@@ -105,8 +106,16 @@ def get_last_page_number(response):
     last_page_number = data["props"]["pageProps"]["initialData"]["searchResult"]["paginationV2"]["maxPage"]
     return last_page_number
 
-def scrape_walmart():
+def scrape_walmart_single_page(page):
     url = "https://www.walmart.ca/en/browse/grocery/fruits-vegetables/10019_6000194327370?"
+    store_id = "3656"
+    postal_code = "H1G 5X3"
+    city = "Montreal-nord"
+    state = "QC"
+    response = get_response(url, page, store_id, postal_code, city, state)
+    save_product_data(response, store_id, page)
+
+def scrape_walmart_category(url):
     page = 1
     store_id = "3656"
     postal_code = "H1G 5X3"
@@ -114,6 +123,7 @@ def scrape_walmart():
     state = "QC"
     response = get_response(url, page, store_id, postal_code, city, state)
     last_page_number = get_last_page_number(response)
+    failed_page_list = []
     for page_number in range(1,last_page_number+1):
         print(f"Scraping page: {page_number}")
         response = get_response(url, page_number, store_id, postal_code, city, state)
@@ -121,11 +131,26 @@ def scrape_walmart():
             if response:
                 save_product_data(response, store_id, page_number)
                 print(f"Successfully scraped page: {page_number}")
+                time.sleep(random.uniform(1,3))
             else:
-                print(f"Empty response for page: {page_number}")    
+                print(f"Empty response for page: {page_number}")
+                failed_page_list.append(page_number)    
         except Exception as e:
             print(f"Failed to scrape page: {page_number} due to {e}")
-        
+    while failed_page_list:
+        for page_number in failed_page_list[:]:
+            print(f"Scraping page: {page_number}")
+            response = get_response(url, page_number, store_id, postal_code, city, state)
+            try:
+                if response:
+                    save_product_data(response, store_id, page_number)
+                    print(f"Successfully scraped page: {page_number}")
+                    failed_page_list.remove(page_number)
+                else:
+                    print(f"Empty response for page: {page_number}")    
+            except Exception as e:
+                print(f"Failed to scrape page: {page_number} due to {e}")
         
 if __name__ == "__main__":
-    scrape_walmart()
+    url = "https://www.walmart.ca/en/browse/grocery/fruits-vegetables/10019_6000194327370?"
+    scrape_walmart_category(url)
