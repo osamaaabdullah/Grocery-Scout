@@ -4,12 +4,29 @@ downloaded_files
 .env
 *.json
 
+#general
 product_url.txt
-postal_list.txt
-walmart_store_id_scraper_v1 copy.py
-walmart_postal_code_scraper.py
 test.py
+
+# metro
+cookie_collector.py
+metro_save_store_data.py
+metro_scraper_v0.py
+metro_scraper_v1.py
+metro_store_id_scraper.py
 repeated_postal_code_checker.py
-walmart_test.py
-nf_scraper_test.py
+
+#walmart
+postal_list.txt
 walmart_cookies.py
+walmart_postal_code_scraper.py
+walmart_scraper_v0.py
+walmart_scraper_v1.py
+walmart_scraper_v2.py
+walmart_scraper_v3.py
+walmart_store_id_scraper_v0.py
+walmart_store_id_scraper_v1 copy.py
+walmart_test.py
+
+#nofrills
+nf_scraper_test.py
