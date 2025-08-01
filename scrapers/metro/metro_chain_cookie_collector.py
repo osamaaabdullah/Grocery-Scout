@@ -13,7 +13,7 @@ class MetroChainCookieCollector:
         self.store_name = store_name
         self.store_id = store_id
         self.postal_code = postal_code
-        self.driver = Driver(uc=True,headless=False)
+        self.driver = Driver(uc=True,headless=True)
         self.cookie = {}
         
     def click_element(self, element):
@@ -74,8 +74,9 @@ def get_all_store_data(filename):
         store_id_list = []
         postal_code_list = []
         for store_id, store_info in store_data.items():
-            store_id_list.append(store_id)
-            postal_code_list.append(store_info.get('address-postal'))
+            if not store_info.get('cookie'):
+                store_id_list.append(store_id)
+                postal_code_list.append(store_info.get('address-postal'))
         return store_id_list,postal_code_list
 
 def get_metro_details():

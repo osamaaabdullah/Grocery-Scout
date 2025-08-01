@@ -30,3 +30,6 @@ walmart_test.py
 
 #nofrills
 nf_scraper_test.py
+no_frills_db_writer.py
+no_frills_location_scraper.py
+no_frills_scraper_v0.py
