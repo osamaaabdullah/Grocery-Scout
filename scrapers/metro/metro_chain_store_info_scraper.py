@@ -34,6 +34,8 @@ class MetroChainStoreScraper:
                 "address-city": city.text(strip=True),
                 "address-province": province.text(strip=True),
                 "address-postal": postal.text(strip=True),
+                "latitude": store.attributes.get("data-store-lat"),
+                "longitude": store.attributes.get("data-store-lng"),
                 "cookie": "",
             }
             
