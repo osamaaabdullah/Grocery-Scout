@@ -1,10 +1,12 @@
 import requests
-
+from datetime import datetime, timezone
+import time
 
 class LoblawChainScraper:
     
-    def __init__(self, store_name: str, category_number_list: list[str]):
+    def __init__(self, store_name: str, store_id: int):
         self.store_name = store_name
+        self.store_id = store_id
         self.base_url = "https://api.pcexpress.ca/pcx-bff/api/v2/listingPage/"
         self.headers = {
             'Accept': 'application/json, text/plain, */*',
@@ -14,9 +16,31 @@ class LoblawChainScraper:
             'x-application-type': 'web',
         'x-loblaw-tenant-id': 'ONLINE_GROCERIES',
         }
-        self.category_number_list = category_number_list
+        self.category_number_list = ["28195", "28194", "28196", "28197", "28198", "28199", "28200", 
+                     "28224", "28222", "28220", "28225", "28227", "28221", "28226", "28223", "58904",
+                     "28214", "28174", "28170", "59252", "59253", "28215", "28171", "28173", "28216", "59318", "59319",
+                     "28187", "28186", "28247", "28246", "28183", "28184", "28248", "28244", "28243", "28188", "28185", "57088", "28245",
+                     "58466", "58467", "58468", "58469", "58466", "58046", "58309", "58311", "58045", "58498", "58499", "58500", "58501", "58502", "58498", "58557", "58559", "58560", "58558", "58561", "58568", "58563", "58570", "58561", "58812", "58813", "58814", "58816", "58812", "58680", "58687",
+                     "58685", "58690", "58680", "58801", "58802", "58809", "58804", "58801",
+                     "28250", "28249", "28242", "59210", "28162", "28163", "28165", "28238", "28164", "28239", "28241",
+                     "59260", "59271", "29713", "29714", "59391", "29717", "59302", "29924", "29925", "29927", "59320", "59339", "59374", "28251", "28147", "28148", "28149", "28150", "59494"]
     
-    def get_json_data(self, page_number,store_id):
+    def parse_store_id(self):
+        return str(self.store_id).zfill(4)
+    
+    def parse_store_url(self):
+        store_name_map = {
+            "Loblaws": "https://www.loblaws.ca",
+            "Zehrs": "https://www.zehrs.ca",
+            "Independent": "https://www.yourindependentgrocer.ca",
+            "Valu-Mart": "https://www.valumart.ca",
+            "Real Atlantic Superstore": "https://www.atlanticsuperstore.ca",
+            "Real Canadian Superstore": "https://www.realcanadiansuperstore.ca", 
+            "No Frills": "https://www.nofrills.ca",
+        }
+        return store_name_map[self.store_name]
+    
+    def get_json_data(self, page_number):
         if self.store_name == "Loblaws":
             json_data = {
                 'cart': {
@@ -28,7 +52,7 @@ class LoblawChainScraper:
                     },
                     'fulfillmentInfo': {
                         'offerType': 'OG',
-                        'storeId': '1095',
+                        'storeId': self.parse_store_id(),
                         'pickupType': 'STORE',
                         'date': '31072025',
                         'timeSlot': None,
@@ -60,7 +84,7 @@ class LoblawChainScraper:
                 },
                 'fulfillmentInfo': {
                     'offerType': 'OG',
-                    'storeId': '0580',
+                    'storeId': self.parse_store_id(),
                     'pickupType': 'STORE',
                     'date': '31072025',
                     'timeSlot': None,
@@ -92,7 +116,7 @@ class LoblawChainScraper:
                 },
                 'fulfillmentInfo': {
                     'offerType': 'OG',
-                    'storeId': '2691',
+                    'storeId': self.parse_store_id(),
                     'pickupType': 'STORE',
                     'date': '31072025',
                     'timeSlot': None,
@@ -128,7 +152,7 @@ class LoblawChainScraper:
                 },
                 'fulfillmentInfo': {
                     'offerType': 'OG',
-                    'storeId': '0416',
+                    'storeId': self.parse_store_id(),
                     'pickupType': 'STORE',
                     'date': '31072025',
                     'timeSlot': None,
@@ -164,9 +188,9 @@ class LoblawChainScraper:
                 },
                 'fulfillmentInfo': {
                     'offerType': 'OG',
-                    'storeId': '0325',
+                    'storeId': self.parse_store_id(),
                     'pickupType': 'STORE',
-                    'date': '31072025',
+                    'date': '30082025',
                     'timeSlot': None,
                 },
                 'banner': 'rass',
@@ -200,7 +224,7 @@ class LoblawChainScraper:
                 },
                 'fulfillmentInfo': {
                     'offerType': 'OG',
-                    'storeId': '1009',
+                    'storeId': self.parse_store_id(),
                     'pickupType': 'STORE',
                     'date': '31072025',
                     'timeSlot': None,
@@ -236,7 +260,7 @@ class LoblawChainScraper:
                 },
                 'fulfillmentInfo': {
                     'offerType': 'OG',
-                    'storeId': '7444',
+                    'storeId': self.parse_store_id(),
                     'pickupType': 'STORE',
                     'date': '31072025',
                     'timeSlot': None,
@@ -257,19 +281,87 @@ class LoblawChainScraper:
                 },
             }
             return json_data
-        
+         
     def scrape_product_category(self):
+        price_url = "http://127.0.0.1:8000/prices"
+        product_url = "http://127.0.0.1:8000/products"
+        price_history_url = "http://127.0.0.1:8000/price/history/"
         for category_number in self.category_number_list:
             url = self.base_url + category_number
             page_number = 1
             while True:
                 response = requests.post(url, headers= self.headers, json= self.get_json_data(page_number))
-                #save the response in DB
+                data = response.json()
+                product_data =  data["layout"]["sections"]["productListingSection"]["components"][0]["data"]["productGrid"]["productTiles"]
+                if product_data:
+                    product_list = [
+                {
+                    "product_id": product["productId"],
+                    "retailer": self.store_name,
+                    "product_name": product["title"],
+                    "product_size": product["packageSizing"],
+                    "category": data["categoryDisplayName"],
+                    "product_url": self.parse_store_url() + product["link"],
+                    "image_url": product["productImage"][0]["imageUrl"]
+                }
+                for product in product_data if "productId" in product
+                ]
+
+                price_list = [
+                    {
+                        "product_id": product["productId"],
+                        "retailer": self.store_name,
+                        "store_id": self.store_id,
+                        "current_price": parse_price(product["pricing"]["price"]),
+                        "regular_price": parse_price(product["pricing"]["wasPrice"] if product["pricing"].get("wasPrice") else product["pricing"]["price"]),
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
+                    for product in product_data if "productId" in product
+                ]
+                
+                price_history_list = [
+                    {
+                        "product_id": product["productId"],
+                        "retailer": self.store_name,
+                        "store_id": self.store_id,
+                        "current_price": parse_price(product["pricing"]["price"]),
+                        "regular_price": parse_price(product["pricing"]["wasPrice"] if product["pricing"].get("wasPrice") else product["pricing"]["price"]),
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
+                    for product in product_data if "productId" in product
+                ]
+                
                 has_more = response.json()['layout']['sections']['productListingSection']['components'][0]['data']['productGrid']['pagination']['hasMore']
+                
+                response = requests.post(product_url, json= product_list)
+                print(response.status_code)
+                response = requests.post(price_url, json = price_list)
+                print(response.status_code)
+                response = requests.post(price_history_url, json = price_history_list)
+                print(response.status_code)
+                
                 if not has_more:
                     break
                 page_number += 1
-                
+            time.sleep(10)
+
+def parse_price(price):
+        return float(price.replace('$','').replace('¢','').strip())
+                    
 if __name__ == "__main__":
-    atlantic_scraper = LoblawChainScraper("Real Atlantic Superstore", ["28195"])
-    atlantic_scraper.scrape_product_category()
+    scraper_list = [
+        LoblawChainScraper("Loblaws", 1066),
+        LoblawChainScraper("Zehrs", 525),
+        LoblawChainScraper("Independent", 408),
+        LoblawChainScraper("Valu-Mart", 2673),
+        LoblawChainScraper("Real Atlantic Superstore", 367),
+        LoblawChainScraper("Real Canadian Superstore", 2842),
+        LoblawChainScraper("No Frills", 7966)
+    ]
+    
+    # for scraper in scraper_list:
+    #     scraper.scrape_product_category()
+    #     time.sleep(60)
+    
+    scraper = LoblawChainScraper("No Frills", 7966)
+    scraper.scrape_product_category()

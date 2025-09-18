@@ -1,16 +1,14 @@
 from curl_cffi import requests
+import time
+from collections import deque
+import json
+import os
 import random
 import urllib3
-import os
-import json
-from selectolax.parser import HTMLParser
 from dotenv import load_dotenv
-from walmart_cookie_generator import generate_cookie
-import time
 
 
-
-def get_response(url:str, page: int, store_id:str, postal_code:str, city:str, state:str):
+def get_response(postal_code):
     load_dotenv()
     
     user_agents = [
@@ -63,11 +61,9 @@ def get_response(url:str, page: int, store_id:str, postal_code:str, city:str, st
         'accept-language': 'en-US,en;q=0.9',
         'user-agent': random.choice(user_agents),
     }
-    
-    cookies = generate_cookie(store_id, postal_code, city, state)
 
     params = {
-        'page': page,
+        'singleLineAddr': postal_code,
     }
     
     proxies = {
@@ -76,81 +72,115 @@ def get_response(url:str, page: int, store_id:str, postal_code:str, city:str, st
     }
     try:
         urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
-        response = requests.get(url, proxies=proxies, params=params, headers=headers, cookies=cookies, verify=False)
+        response = requests.get(
+            'https://www.walmart.ca/en/stores-near-me/api/searchStores',
+            proxies=proxies,
+            params=params,
+            headers=headers,
+            verify=False
+        )
         return response
     except requests.exceptions.RequestException as e:
         print(f"Error getting response: {e}")
-        return None
-        
-        
-def get_product_data(response):
-    tree = HTMLParser(response.text)
-    script_node = tree.css_first('script#__NEXT_DATA__')
-    if script_node:
-        data = json.loads(script_node.text())
-    else:
-        raise ValueError("Could not find __NEXT_DATA__ script in the page.")
-    return data
 
-def save_product_data(response, store_id, page):
-    data = get_product_data(response)
-    product_data = data["props"]["pageProps"]["initialData"]["searchResult"]["itemStacks"][0]["items"]
-    if not os.path.exists("walmart_data"):
-        os.makedirs("walmart_data", exist_ok=True)
-    if product_data:
-        with open(f"walmart_data/{store_id}_walmart_product_data_{page}.json", "w", encoding="utf-8") as file:
-                json.dump(product_data,file, indent=4, ensure_ascii=False)
-                
-def get_last_page_number(response):
-    data = get_product_data(response)
-    last_page_number = data["props"]["pageProps"]["initialData"]["searchResult"]["paginationV2"]["maxPage"]
-    return last_page_number
-
-def scrape_walmart_single_page(page):
-    url = "https://www.walmart.ca/en/browse/grocery/fruits-vegetables/10019_6000194327370?"
-    store_id = "3656"
-    postal_code = "H1G 5X3"
-    city = "Montreal-nord"
-    state = "QC"
-    response = get_response(url, page, store_id, postal_code, city, state)
-    save_product_data(response, store_id, page)
-
-def scrape_walmart_category(url):
-    page = 1
-    store_id = "3656"
-    postal_code = "H1G 5X3"
-    city = "Montreal-nord"
-    state = "QC"
-    response = get_response(url, page, store_id, postal_code, city, state)
-    last_page_number = get_last_page_number(response)
-    failed_page_list = []
-    for page_number in range(1,last_page_number+1):
-        print(f"Scraping page: {page_number}")
-        response = get_response(url, page_number, store_id, postal_code, city, state)
+def scrape_store_info(postal_code):
+    for i in range(3):
+        response = get_response(postal_code)
         try:
-            if response:
-                save_product_data(response, store_id, page_number)
-                print(f"Successfully scraped page: {page_number}")
-                time.sleep(random.uniform(1,3))
-            else:
-                print(f"Empty response for page: {page_number}")
-                failed_page_list.append(page_number)    
-        except Exception as e:
-            print(f"Failed to scrape page: {page_number} due to {e}")
-    while failed_page_list:
-        for page_number in failed_page_list[:]:
-            print(f"Scraping page: {page_number}")
-            response = get_response(url, page_number, store_id, postal_code, city, state)
+            data = response.json()
+            return data
+        except (requests.exceptions.JSONDecodeError,json.decoder.JSONDecodeError):
+            time.sleep(3)
+            continue
+    return None
+
+def parse_stores_json(stores, data, current_postal):
+    postal_list = []
+    for store_info in data["payload"]["stores"]:
+        store_id = store_info["id"]
+        store_postal = store_info["address"]["postalCode"]
+        store_data = {
+            "storeName": store_info.get("displayName"),
+            "address": store_info["address"],
+            "latitude": store_info.get("geoPoint",{}).get("latitude"),
+            "longitude": store_info.get("geoPoint",{}).get("longitude"),
+            "scraped": "True"
+        }
+        stores[store_id] = store_data
+        postal_list.append(store_info["address"]["postalCode"])
+    
+    return stores,postal_list
+
+def get_scraped_postals():
+    scraped_postals_list = []
+    if os.path.exists("walmart_store_2.json"):
+        with open("walmart_store_2.json", "r", encoding="utf-8") as json_data:
             try:
-                if response:
-                    save_product_data(response, store_id, page_number)
-                    print(f"Successfully scraped page: {page_number}")
-                    failed_page_list.remove(page_number)
-                else:
-                    print(f"Empty response for page: {page_number}")    
-            except Exception as e:
-                print(f"Failed to scrape page: {page_number} due to {e}")
-        
+                scraped_data = json.load(json_data)
+                scraped_postals_list = [store_info["address"]["postalCode"] for store_info in scraped_data.values() if store_info["scraped"] == "True"]
+            except json.JSONDecodeError:
+                pass
+    return scraped_postals_list
+
+def get_unscraped_postals():
+    unscraped_postals_list = []
+    if os.path.exists("walmart_store_2.json"):
+        with open("walmart_store_2.json", "r", encoding="utf-8") as json_data:
+            try:
+                scraped_data = json.load(json_data)
+                unscraped_postals_list = [store_info["address"]["postalCode"] for store_info in scraped_data.values() if store_info["scraped"] == "False"]
+            except json.JSONDecodeError:
+                pass
+    return unscraped_postals_list
+
+def save_store_info(data):
+    if os.path.exists("walmart_store_2.json"):
+        with open("walmart_store_2.json", "r", encoding="utf-8") as json_data:
+            try:
+                store_data = json.load(json_data)
+                
+            except json.JSONDecodeError:
+                store_data = {}
+    else:
+        store_data = {}
+    
+    store_data.update(data)
+    
+    with open("walmart_store_2.json", "w", encoding="utf-8") as json_data:       
+        json.dump(store_data, json_data, indent=4, ensure_ascii=False)
+
+
 if __name__ == "__main__":
-    url = "https://www.walmart.ca/en/browse/grocery/fruits-vegetables/10019_6000194327370?"
-    scrape_walmart_category(url)
+    # Load existing store data ONCE
+    if os.path.exists("walmart_store_2.json"):
+        with open("walmart_store_2.json", "r", encoding="utf-8") as json_data:
+            try:
+                stores = json.load(json_data)
+            except json.JSONDecodeError:
+                stores = {}
+    else:
+        stores = {}
+
+    # Initial queue
+    store_queue = deque(get_unscraped_postals())
+
+    while store_queue:
+        postal_code = store_queue.popleft()
+        data = scrape_store_info(postal_code)
+
+        if data == {'message': 'Forbidden'} or data is None:
+            store_queue.append(postal_code)
+            print(f"Scrapping Failed: {postal_code}")
+            time.sleep(10)
+            continue
+
+        # Pass the persistent 'stores', not an empty dict
+        stores, postal_list = parse_stores_json(stores, data, postal_code)
+
+        print(f"There are {len(store_queue)} codes remaining: {store_queue}")
+        save_store_info(stores)
+
+        time.sleep(random.uniform(1, 3))
+
+        # --- Refresh queue each loop AFTER updating file ---
+        store_queue = deque(get_unscraped_postals())  # This is fine now

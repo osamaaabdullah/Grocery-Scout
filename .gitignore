@@ -8,28 +8,9 @@ downloaded_files
 product_url.txt
 test.py
 
-# metro
-cookie_collector.py
-metro_save_store_data.py
-metro_scraper_v0.py
-metro_scraper_v1.py
-metro_store_id_scraper.py
-repeated_postal_code_checker.py
-
-#walmart
-postal_list.txt
-walmart_cookies.py
-walmart_postal_code_scraper.py
-walmart_scraper_v0.py
-walmart_scraper_v1.py
-walmart_scraper_v2.py
-walmart_scraper_v3.py
-walmart_store_id_scraper_v0.py
-walmart_store_id_scraper_v1 copy.py
-walmart_test.py
-
-#nofrills
-nf_scraper_test.py
-no_frills_db_writer.py
-no_frills_location_scraper.py
-no_frills_scraper_v0.py
+#fastapi
+/app/models/user.py
+/app/routers/auth.py
+/app/schemas/users.py
+/app/schemas/cart.py
+/app/services/users.py
