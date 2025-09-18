@@ -1,4 +1,5 @@
 import app.services.stores as store_services
+import app.services.geocode as geocode
 
 from fastapi import APIRouter
 from ..schemas.store_product import StoreCreate
@@ -28,3 +29,8 @@ async def get_stores(province: str = None, db: Session= Depends(get_db)):
     if province:
         return store_services.get_stores_by_province(db, province)
     return store_services.get_stores(db)
+
+@router.get("/stores/nearest")
+async def get_nearest_stores_by_postal(postal_code: str, set_distance: float = 5, db: Session = Depends(get_db)):
+    user_geolocation = geocode.get_geocode_from_postal(postal_code)
+    return store_services.get_nearest_stores(db, user_geolocation['lat'], user_geolocation['lng'], set_distance)
