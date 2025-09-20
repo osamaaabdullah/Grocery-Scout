@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import store_router, product_router,price_router
+from .routers import store_router, product_router,price_router, province_router
 # from .routers.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -34,5 +34,8 @@ app.include_router(store_router)
 #product endpoints
 app.include_router(product_router)
 
-#price endpoints
+#price endpoints for individual stores
 app.include_router(price_router)
+
+#price endpoints for province
+app.include_router(province_router)

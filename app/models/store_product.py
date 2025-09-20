@@ -31,6 +31,7 @@ class Product(Base):
     image_url = Column(String, nullable=True)
     prices = relationship("Price", back_populates="product")
     price_histories = relationship("PriceHistory", back_populates="product")
+    province_prices = relationship("ProvincePrice", back_populates="product")
 
     __table_args__ = (PrimaryKeyConstraint('product_id', 'retailer'),)
     

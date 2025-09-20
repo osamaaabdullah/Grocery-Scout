@@ -1,14 +1,14 @@
 from ..models.store_product import Product
 from ..schemas.store_product import ProductCreate
 from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import insert, Insert
 
 
-def upsert_product_fields(product_instance: ProductCreate) -> dict:
+def upsert_product_fields(product_instance: Insert) -> dict:
     """Helper function that defines the fields to update when a product conflict occurs during an upsert. 
 
     Args:
-        product_instance (ProductCreate): Product instance. 
+        product_instance (Insert): A SQLAlchemy PostgreSQL INSERT statement object. 
 
     Returns:
         dict: A dictionary of values that needs to be updated.

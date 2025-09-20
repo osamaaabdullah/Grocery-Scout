@@ -1,14 +1,14 @@
 from ..models.store_product import Product, Price, PriceHistory
 from ..schemas.store_product import PriceCreate, PriceHistoryCreate
 from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import insert, Insert
 from sqlalchemy import func
 
-def upsert_price_fields(price_instance: PriceCreate) -> dict:
+def upsert_price_fields(price_instance: Insert) -> dict:
     """Helper function that defines the fields to update when a price conflict occurs during an upsert. 
 
     Args:
-        price_instance (PriceCreate): Price instance. 
+        price_instance (Insert): A SQLAlchemy PostgreSQL INSERT statement object. 
 
     Returns:
         dict: A dictionary of values that needs to be updated.
@@ -167,15 +167,15 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
     }
 
 def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None) -> list[dict]:
-    """_summary_
+    """Fetch all products and their prices
 
     Args:
-        db (Session): _description_
-        category (str | None, optional): _description_. Defaults to None.
-        retailer (str | None, optional): _description_. Defaults to None.
+        db (Session): SQLAlchemy database session.
+        category (str | None, optional): Optional category filter. Defaults to None.
+        retailer (str | None, optional): Optional retailer filter. Defaults to None.
 
     Returns:
-        list[dict]: _description_
+        list[dict]: List of all products and their prices
     """
     
     query = db.query(Product,Price).join(Price, (Product.product_id == Price.product_id) & (Product.retailer == Price.retailer))

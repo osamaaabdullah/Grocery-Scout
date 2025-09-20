@@ -3,14 +3,14 @@ from ..schemas.store_product import StoreCreate
 from ..schemas.store_product import Store as StoreSchema
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
-from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.dialects.postgresql import insert, Insert
 import math
 
-def upsert_store_fields(store_instance: StoreCreate) -> dict:
+def upsert_store_fields(store_instance: Insert) -> dict:
     """Helper function that defines the fields to update when a product conflict occurs during an upsert. 
 
     Args:
-        store_instance (StoreCreate): StoreCreate instance. 
+        store_instance (Insert): A SQLAlchemy PostgreSQL INSERT statement object. 
 
     Returns:
         dict: A dictionary of values that needs to be updated.
