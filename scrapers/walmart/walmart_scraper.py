@@ -112,15 +112,8 @@ def parse_multi_save(offer, type: str = None):
     else:
         return text[0]
 
-   
-def save_product_data(response, store_id, page):
-    price_url = "http://127.0.0.1:8000/prices"
-    product_url = "http://127.0.0.1:8000/products"
-    price_history_url = "http://127.0.0.1:8000/price/history/"
-    data = get_product_data(response)
-    product_data = data["props"]["pageProps"]["initialData"]["searchResult"]["itemStacks"][0]["items"]
-    if product_data:
-        product_list = [
+def parse_product_list(product_data):
+    product_list = [
             {
                 "product_id": product["id"],
                 "retailer": "Walmart",
@@ -132,7 +125,11 @@ def save_product_data(response, store_id, page):
             }
             for product in product_data if "id" in product
         ]
-        price_list = [
+    
+    return product_list
+
+def parse_individual_price_list(product_data, store_id):
+    price_list = [
             {
                 "product_id": product["id"],
                 "retailer": "Walmart",
@@ -145,8 +142,28 @@ def save_product_data(response, store_id, page):
             }
             for product in product_data if "id" in product
         ]
-        
-        price_history_list = [
+    
+    return price_list
+
+def parse_province_price_list(product_data, province):
+    price_list = [
+            {
+                "product_id": product["id"],
+                "retailer": "Walmart",
+                "province": province,
+                "current_price": parse_price(product["priceInfo"]["linePrice"]),
+                "regular_price": parse_price(product["priceInfo"]["wasPrice"] if product["priceInfo"].get("wasPrice") else product["priceInfo"]["linePrice"]),
+                "multi_save_qty": parse_multi_save(product["badge"]["text"]),
+                "multi_save_price": parse_multi_save(product["badge"]["text"], "price"),
+                "timestamp": datetime.now(timezone.utc).isoformat()
+            }
+            for product in product_data if "id" in product
+        ]
+    
+    return price_list
+
+def parse_history_list(product_data, store_id):
+    price_history_list = [
             {
                 "product_id": product["id"],
                 "retailer": "Walmart",
@@ -157,10 +174,27 @@ def save_product_data(response, store_id, page):
             }
             for product in product_data if "id" in product
         ]
+    
+    return price_history_list
+
+def save_product_data(response, store_id, province):
+    price_url = "http://127.0.0.1:8000/prices"
+    province_price_url = "http://127.0.0.1:8000/province/prices"
+    product_url = "http://127.0.0.1:8000/products"
+    price_history_url = "http://127.0.0.1:8000/price/history/"
+    data = get_product_data(response)
+    product_data = data["props"]["pageProps"]["initialData"]["searchResult"]["itemStacks"][0]["items"]
+    if product_data:
+        product_list = parse_product_list(product_data)
+        # price_list = parse_individual_price_list(product_data, store_id)
+        province_price_list = parse_province_price_list(product_data, province)
+        price_history_list = parse_history_list(product_data, store_id)        
         response = requests.post(product_url, json= product_list)
         print(response.status_code)
-        response = requests.post(price_url, json = price_list)
+        response = requests.post(province_price_url, json = province_price_list)
         print(response.status_code)
+        # response = requests.post(price_url, json = price_list)
+        # print(response.status_code)
         response = requests.post(price_history_url, json= price_history_list)
         print(response.status_code)
     
@@ -176,7 +210,7 @@ def scrape_walmart_single_page(page):
     city = "Montreal-nord"
     state = "QC"
     response = get_response(url, page, store_id, postal_code, city, state)
-    save_product_data(response, store_id, page)
+    save_product_data(response, store_id, state)
 
 def scrape_walmart_category(url):
     page = 13
@@ -192,7 +226,7 @@ def scrape_walmart_category(url):
         response = get_response(url, page_number, store_id, postal_code, city, state)
         try:
             if response:
-                save_product_data(response, store_id, page_number)
+                save_product_data(response, store_id, state)
                 print(f"Successfully scraped page: {page_number}")
                 time.sleep(random.uniform(1,3))
             else:
@@ -207,7 +241,7 @@ def scrape_walmart_category(url):
             response = get_response(url, page_number, store_id, postal_code, city, state)
             try:
                 if response:
-                    save_product_data(response, store_id, page_number)
+                    save_product_data(response, store_id, state)
                     print(f"Successfully scraped page: {page_number}")
                     failed_page_list.remove(page_number)
                 else:

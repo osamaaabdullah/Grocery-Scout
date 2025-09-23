@@ -4,9 +4,10 @@ import time
 
 class LoblawChainScraper:
     
-    def __init__(self, store_name: str, store_id: int):
+    def __init__(self, store_name: str, store_id: int, province: str = "ON"):
         self.store_name = store_name
         self.store_id = store_id
+        self.province = province
         self.base_url = "https://api.pcexpress.ca/pcx-bff/api/v2/listingPage/"
         self.headers = {
             'Accept': 'application/json, text/plain, */*',
@@ -281,19 +282,9 @@ class LoblawChainScraper:
                 },
             }
             return json_data
-         
-    def scrape_product_category(self):
-        price_url = "http://127.0.0.1:8000/prices"
-        product_url = "http://127.0.0.1:8000/products"
-        price_history_url = "http://127.0.0.1:8000/price/history/"
-        for category_number in self.category_number_list:
-            url = self.base_url + category_number
-            page_number = 1
-            while True:
-                response = requests.post(url, headers= self.headers, json= self.get_json_data(page_number))
-                data = response.json()
-                product_data =  data["layout"]["sections"]["productListingSection"]["components"][0]["data"]["productGrid"]["productTiles"]
-                if product_data:
+
+    def parse_product_list(self, product_data, data) -> list[dict]:
+        if product_data:
                     product_list = [
                 {
                     "product_id": product["productId"],
@@ -306,8 +297,11 @@ class LoblawChainScraper:
                 }
                 for product in product_data if "productId" in product
                 ]
+        return product_list
 
-                price_list = [
+    def parse_individual_price_list(self, product_data) -> list[dict]:
+        if product_data:
+            price_list = [
                     {
                         "product_id": product["productId"],
                         "retailer": self.store_name,
@@ -318,25 +312,64 @@ class LoblawChainScraper:
                     }
                     for product in product_data if "productId" in product
                 ]
-                
-                price_history_list = [
+        return price_list
+    
+    def parse_province_price_list(self, product_data) -> list[dict]:
+        if product_data:
+            price_list = [
                     {
                         "product_id": product["productId"],
                         "retailer": self.store_name,
-                        "store_id": self.store_id,
+                        "province": self.province,
                         "current_price": parse_price(product["pricing"]["price"]),
                         "regular_price": parse_price(product["pricing"]["wasPrice"] if product["pricing"].get("wasPrice") else product["pricing"]["price"]),
                         "timestamp": datetime.now(timezone.utc).isoformat()
                     }
                     for product in product_data if "productId" in product
                 ]
+        return price_list
+    
+    def parse_price_history_list(self, product_data) -> list[dict]:
+        if product_data:
+            price_history_list = [
+                        {
+                            "product_id": product["productId"],
+                            "retailer": self.store_name,
+                            "store_id": self.store_id,
+                            "current_price": parse_price(product["pricing"]["price"]),
+                            "regular_price": parse_price(product["pricing"]["wasPrice"] if product["pricing"].get("wasPrice") else product["pricing"]["price"]),
+                            "timestamp": datetime.now(timezone.utc).isoformat()
+                        }
+                        for product in product_data if "productId" in product
+                    ]
+        return price_history_list
+
+    def scrape_product_category(self):
+        # price_url = "http://127.0.0.1:8000/prices"
+        province_price_url = "http://127.0.0.1:8000/province/prices"
+        product_url = "http://127.0.0.1:8000/products"
+        price_history_url = "http://127.0.0.1:8000/price/history/"
+        for category_number in self.category_number_list:
+            url = self.base_url + category_number
+            page_number = 1
+            while True:
+                response = requests.post(url, headers= self.headers, json= self.get_json_data(page_number))
+                data = response.json()
+                product_data =  data["layout"]["sections"]["productListingSection"]["components"][0]["data"]["productGrid"]["productTiles"]
+                if product_data:
+                    product_list = self.parse_product_list(product_data, data)
+                    # individual_price_list = self.parse_individual_price_list(product_data)
+                    province_price_list = self.parse_province_price_list(product_data)
+                    price_history_list = self.parse_price_history_list(product_data)
                 
                 has_more = response.json()['layout']['sections']['productListingSection']['components'][0]['data']['productGrid']['pagination']['hasMore']
                 
                 response = requests.post(product_url, json= product_list)
                 print(response.status_code)
-                response = requests.post(price_url, json = price_list)
+                response = requests.post(province_price_url, json = province_price_list)
                 print(response.status_code)
+                # response = requests.post(price_url, json = price_list)
+                # print(response.status_code)
                 response = requests.post(price_history_url, json = price_history_list)
                 print(response.status_code)
                 
@@ -363,5 +396,5 @@ if __name__ == "__main__":
     #     scraper.scrape_product_category()
     #     time.sleep(60)
     
-    scraper = LoblawChainScraper("No Frills", 7966)
+    scraper = LoblawChainScraper("No Frills", 7966, "AB")
     scraper.scrape_product_category()

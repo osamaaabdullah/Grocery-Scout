@@ -96,7 +96,7 @@ def parse_price(price, product = None):
             price = product_size[0]
         else: 
             price = product_size[1]    
-    return float(price.replace('$','').replace('¢','').replace("\xa0/ ", "/").replace("avg.","").replace("kg", "").replace("ea.", "").strip())
+    return float(price.replace('$','').replace('¢','').replace("\xa0/ ", "/").replace("avg.","").replace("kg", "").replace("ea.", "").replace("+tx", "").strip())
 
 def parse_multi_save(offer, type:str = None):
     if "/" in offer:
