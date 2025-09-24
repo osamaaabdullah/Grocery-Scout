@@ -1,9 +1,12 @@
 import requests
 from datetime import datetime, timezone
 import time
+from config import STORE_CONFIG, API_ENDPOINTS
+import os
+from dotenv import load_dotenv
 
 class LoblawChainScraper:
-    
+    load_dotenv()
     def __init__(self, store_name: str, store_id: int, province: str = "ON"):
         self.store_name = store_name
         self.store_id = store_id
@@ -13,9 +16,9 @@ class LoblawChainScraper:
             'Accept': 'application/json, text/plain, */*',
             'Accept-Language': 'en',
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36',
-            'x-apikey': 'C1xujSegT5j3ap3yexJjqhOfELwGKYvz',
+            'x-apikey': os.getenv("NO_FRILLS_X_API_KEY"),
             'x-application-type': 'web',
-        'x-loblaw-tenant-id': 'ONLINE_GROCERIES',
+            'x-loblaw-tenant-id': 'ONLINE_GROCERIES',
         }
         self.category_number_list = ["28195", "28194", "28196", "28197", "28198", "28199", "28200", 
                      "28224", "28222", "28220", "28225", "28227", "28221", "28226", "28223", "58904",
@@ -42,46 +45,14 @@ class LoblawChainScraper:
         return store_name_map[self.store_name]
     
     def get_json_data(self, page_number):
-        if self.store_name == "Loblaws":
-            json_data = {
-                'cart': {
-                        'cartId': 'c3a2b386-14c9-45f1-9e98-fa5a6f96001f',
-                    },
-                    'userData': {
-                        'domainUserId': 'e11bad8f-e8e3-497f-b2b0-8e550e69af8b',
-                        'sessionId': 'af7ee6d4-fd91-4341-8eb6-99648d589b3f',
-                    },
-                    'fulfillmentInfo': {
-                        'offerType': 'OG',
-                        'storeId': self.parse_store_id(),
-                        'pickupType': 'STORE',
-                        'date': '31072025',
-                        'timeSlot': None,
-                    },
-                    'banner': 'loblaw',
-                    'listingInfo': {
-                        'filters': {},
-                        'sort': {
-                            'name': 'asc',
-                        },
-                        'pagination': {
-                            'from': page_number,
-                        },
-                        'includeFiltersInResponse': True,
-                    },
-                    'device': {
-                        'screenSize': 1642,
-                    },
-                }
-            return json_data
-        if self.store_name == "Zehrs":
-            json_data = {
-                'cart': {
-                    'cartId': '345ea88e-2a1a-43b7-a8ea-12ff49587122',
+        config = STORE_CONFIG.get(self.store_name)
+        return {
+            'cart': {
+                    'cartId': config["cartId"],
                 },
                 'userData': {
-                    'domainUserId': '5c1613b1-35e5-44eb-8571-dba6df654906',
-                    'sessionId': '6fe7854a-69ab-401d-99be-492a270b7b8a',
+                    'domainUserId': config["domainUserId"],
+                    'sessionId': config["sessionId"],
                 },
                 'fulfillmentInfo': {
                     'offerType': 'OG',
@@ -90,7 +61,7 @@ class LoblawChainScraper:
                     'date': '31072025',
                     'timeSlot': None,
                 },
-                'banner': 'zehrs',
+                'banner': config['banner'],
                 'listingInfo': {
                     'filters': {},
                     'sort': {
@@ -105,183 +76,6 @@ class LoblawChainScraper:
                     'screenSize': 1642,
                 },
             }
-            return json_data
-        if self.store_name == "Independent":
-            json_data = {
-                'cart': {
-                    'cartId': 'b82bbb3f-956a-4a9f-9f9a-e521fbe826e6',
-                },
-                'userData': {
-                    'domainUserId': '52507a42-36c4-424c-84ca-2591d96bc65e',
-                    'sessionId': '82140c40-61f9-4544-9ec3-57bb446b2bab',
-                },
-                'fulfillmentInfo': {
-                    'offerType': 'OG',
-                    'storeId': self.parse_store_id(),
-                    'pickupType': 'STORE',
-                    'date': '31072025',
-                    'timeSlot': None,
-                },
-                'banner': 'independent',
-                'listingInfo': {
-                    'filters': {
-                        'navid': [
-                            'flyout-L3-Fresh-Vegetables',
-                        ],
-                    },
-                    'sort': {
-                        'name': 'asc',
-                    },
-                    'pagination': {
-                        'from': page_number,
-                    },
-                    'includeFiltersInResponse': True,
-                },
-                'device': {
-                    'screenSize': 0,
-                },
-            }
-            return json_data
-        if self.store_name == "Valu-Mart":
-            json_data = {
-                'cart': {
-                    'cartId': 'db6814a3-a702-4fd0-894c-ad745a22573d',
-                },
-                'userData': {
-                    'domainUserId': '82289e20-2bb3-462b-bf08-d3dd594942f1',
-                    'sessionId': 'b55cbf9f-0af3-4413-8ca8-ca0ea6c08c79',
-                },
-                'fulfillmentInfo': {
-                    'offerType': 'OG',
-                    'storeId': self.parse_store_id(),
-                    'pickupType': 'STORE',
-                    'date': '31072025',
-                    'timeSlot': None,
-                },
-                'banner': 'valumart',
-                'listingInfo': {
-                    'filters': {
-                        'navid': [
-                            'flyout-L3-Fresh-Vegetables',
-                        ],
-                    },
-                    'sort': {
-                        'name': 'asc',
-                    },
-                    'pagination': {
-                        'from': page_number,
-                    },
-                    'includeFiltersInResponse': True,
-                },
-                'device': {
-                    'screenSize': 1642,
-                },
-            }
-            return json_data
-        if self.store_name == "Real Atlantic Superstore":
-            json_data = {
-                'cart': {
-                    'cartId': '4060196b-bca7-4a7c-a605-ebcb6b828322',
-                },
-                'userData': {
-                    'domainUserId': '000366bd-fa19-4d58-9c71-882f4524f09f',
-                    'sessionId': 'a3cd3dd7-55df-4c01-897b-515e2229db37',
-                },
-                'fulfillmentInfo': {
-                    'offerType': 'OG',
-                    'storeId': self.parse_store_id(),
-                    'pickupType': 'STORE',
-                    'date': '30082025',
-                    'timeSlot': None,
-                },
-                'banner': 'rass',
-                'listingInfo': {
-                    'filters': {
-                        'navid': [
-                            'flyout-L3-Fresh-Vegetables',
-                        ],
-                    },
-                    'sort': {
-                        'name': 'asc',
-                    },
-                    'pagination': {
-                        'from': page_number,
-                    },
-                    'includeFiltersInResponse': True,
-                },
-                'device': {
-                    'screenSize': 1642,
-                },
-            }
-            return json_data
-        if self.store_name == "Real Canadian Superstore":
-            json_data = {
-                'cart': {
-                    'cartId': '17edfc36-ef48-4414-9abf-15a9add443cd',
-                },
-                'userData': {
-                    'domainUserId': '65b41b41-866e-486a-a6b6-d0396ddc41c6',
-                    'sessionId': '76b98e93-4ac6-4e44-bfb9-0e8637ac3c18',
-                },
-                'fulfillmentInfo': {
-                    'offerType': 'OG',
-                    'storeId': self.parse_store_id(),
-                    'pickupType': 'STORE',
-                    'date': '31072025',
-                    'timeSlot': None,
-                },
-                'banner': 'superstore',
-                'listingInfo': {
-                    'filters': {
-                        'navid': [
-                            'flyout-L3-Fresh-Vegetables',
-                        ],
-                    },
-                    'sort': {
-                        'name': 'asc',
-                    },
-                    'pagination': {
-                        'from': page_number,
-                    },
-                    'includeFiltersInResponse': True,
-                },
-                'device': {
-                    'screenSize': 1642,
-                },
-            }
-            return json_data
-        if self.store_name == "No Frills":
-            json_data = {
-                'cart': {
-                    'cartId': '0c85a4d3-fc9c-47b7-afee-5b65d964d06e',
-                },
-                'userData': {
-                    'domainUserId': 'a4a4c09c-0a83-4f26-a19f-b783f8da95aa',
-                    'sessionId': '83b5d0ac-7c34-466c-8906-7bfff5a61389',
-                },
-                'fulfillmentInfo': {
-                    'offerType': 'OG',
-                    'storeId': self.parse_store_id(),
-                    'pickupType': 'STORE',
-                    'date': '31072025',
-                    'timeSlot': None,
-                },
-                'banner': 'nofrills',
-                'listingInfo': {
-                    'filters': {},
-                    'sort': {
-                        'name': 'asc',
-                    },
-                    'pagination': {
-                        'from': page_number,
-                    },
-                    'includeFiltersInResponse': True,
-                },
-                'device': {
-                    'screenSize': 1642,
-                },
-            }
-            return json_data
 
     def parse_product_list(self, product_data, data) -> list[dict]:
         if product_data:
@@ -345,10 +139,6 @@ class LoblawChainScraper:
         return price_history_list
 
     def scrape_product_category(self):
-        # price_url = "http://127.0.0.1:8000/prices"
-        province_price_url = "http://127.0.0.1:8000/province/prices"
-        product_url = "http://127.0.0.1:8000/products"
-        price_history_url = "http://127.0.0.1:8000/price/history/"
         for category_number in self.category_number_list:
             url = self.base_url + category_number
             page_number = 1
@@ -364,13 +154,13 @@ class LoblawChainScraper:
                 
                 has_more = response.json()['layout']['sections']['productListingSection']['components'][0]['data']['productGrid']['pagination']['hasMore']
                 
-                response = requests.post(product_url, json= product_list)
+                response = requests.post(API_ENDPOINTS["product_url"], json= product_list)
                 print(response.status_code)
-                response = requests.post(province_price_url, json = province_price_list)
+                response = requests.post(API_ENDPOINTS["province_price_url"], json = province_price_list)
                 print(response.status_code)
                 # response = requests.post(price_url, json = price_list)
                 # print(response.status_code)
-                response = requests.post(price_history_url, json = price_history_list)
+                response = requests.post(API_ENDPOINTS["price_history_url"], json = price_history_list)
                 print(response.status_code)
                 
                 if not has_more:

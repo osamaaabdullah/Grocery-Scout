@@ -82,7 +82,8 @@ def save_loblaws_chain_stores(store_url):
     for store in store_names:
         file = f"loblaw/{store}_store_data.json"
         if not os.path.exists(file):
-            return "File doesn't exist"
+            print ("File doesn't exist")
+            continue
         
         with open(file, "r", encoding= "utf-8") as f:
             store_data = json.load(f)
@@ -125,7 +126,7 @@ def province_mapping(province_name):
 
 if __name__ == "__main__":
     store_url = "http://127.0.0.1:8000/stores"
-    print(save_walmart_stores(store_url))
-    print(save_metro_stores(store_url))
-    print(save_foodbasics_stores(store_url))
+    # print(save_walmart_stores(store_url))
+    # print(save_metro_stores(store_url))
+    # print(save_foodbasics_stores(store_url))
     print(save_loblaws_chain_stores(store_url))

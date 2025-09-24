@@ -203,14 +203,14 @@ def get_last_page_number(response):
     last_page_number = data["props"]["pageProps"]["initialData"]["searchResult"]["paginationV2"]["maxPage"]
     return last_page_number
 
-def scrape_walmart_single_page(page):
-    url = "https://www.walmart.ca/en/browse/grocery/grocery/fruits-vegetables/10019_6000194327370?"
-    store_id = "3656"
-    postal_code = "H1G 5X3"
-    city = "Montreal-nord"
-    state = "QC"
-    response = get_response(url, page, store_id, postal_code, city, state)
-    save_product_data(response, store_id, state)
+# def scrape_walmart_single_page(page):
+#     url = "https://www.walmart.ca/en/browse/grocery/grocery/fruits-vegetables/10019_6000194327370?"
+#     store_id = "3656"
+#     postal_code = "H1G 5X3"
+#     city = "Montreal-nord"
+#     state = "QC"
+#     response = get_response(url, page, store_id, postal_code, city, state)
+#     save_product_data(response, store_id, state)
 
 def scrape_walmart_category(url):
     page = 13
