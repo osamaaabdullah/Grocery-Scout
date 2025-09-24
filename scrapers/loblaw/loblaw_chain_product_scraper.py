@@ -1,13 +1,14 @@
 import requests
 from datetime import datetime, timezone
 import time
-from config import STORE_CONFIG, API_ENDPOINTS
+from config import STORE_CONFIG, API_ENDPOINTS, STORE_LIST
 import os
 from dotenv import load_dotenv
+import random
 
 class LoblawChainScraper:
     load_dotenv()
-    def __init__(self, store_name: str, store_id: int, province: str = "ON"):
+    def __init__(self, store_name: str, store_id: int, province: str):
         self.store_name = store_name
         self.store_id = store_id
         self.province = province
@@ -144,6 +145,7 @@ class LoblawChainScraper:
             page_number = 1
             while True:
                 response = requests.post(url, headers= self.headers, json= self.get_json_data(page_number))
+                print(f"Category: {category_number}, Page {page_number}")
                 data = response.json()
                 product_data =  data["layout"]["sections"]["productListingSection"]["components"][0]["data"]["productGrid"]["productTiles"]
                 if product_data:
@@ -166,25 +168,18 @@ class LoblawChainScraper:
                 if not has_more:
                     break
                 page_number += 1
+                time.sleep(random.uniform(1,5))
             time.sleep(10)
 
 def parse_price(price):
         return float(price.replace('$','').replace('¢','').strip())
                     
 if __name__ == "__main__":
-    scraper_list = [
-        LoblawChainScraper("Loblaws", 1066),
-        LoblawChainScraper("Zehrs", 525),
-        LoblawChainScraper("Independent", 408),
-        LoblawChainScraper("Valu-Mart", 2673),
-        LoblawChainScraper("Real Atlantic Superstore", 367),
-        LoblawChainScraper("Real Canadian Superstore", 2842),
-        LoblawChainScraper("No Frills", 7966)
-    ]
+    store_list = STORE_LIST
+    store_object_list = []
+    for store in store_list:
+        store_name = store["retailer"]
+        store_object_list.extend([LoblawChainScraper(store_name, store_details["store_id"], store_details["province"]) for store_details in store["province_stores"]])
     
-    # for scraper in scraper_list:
-    #     scraper.scrape_product_category()
-    #     time.sleep(60)
-    
-    scraper = LoblawChainScraper("No Frills", 7966, "AB")
-    scraper.scrape_product_category()
+    for store in store_object_list:
+         store.scrape_product_category()

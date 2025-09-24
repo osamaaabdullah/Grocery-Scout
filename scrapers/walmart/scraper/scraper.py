@@ -4,8 +4,8 @@ from .requests import get_response
 from .savers import save_product_data
 from .parsers import get_last_page_number
 
-def scrape_walmart_category(url, page, store_id, postal_code, city, state):
-    response = get_response(url, page, store_id, postal_code, city, state)
+def scrape_walmart_category(url, store_id, postal_code, city, state):
+    response = get_response(url, 1, store_id, postal_code, city, state)
     last_page_number = get_last_page_number(response)
     failed_page_list = []
     for page_number in range(1,last_page_number):

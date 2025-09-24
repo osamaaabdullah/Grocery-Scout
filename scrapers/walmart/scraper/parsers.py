@@ -1,7 +1,7 @@
 from selectolax.parser import HTMLParser
 import json
 from datetime import datetime, timezone
-from config import BASE_URL
+from walmart.config import BASE_URL
 
 def get_product_data(response):
     tree = HTMLParser(response.text)

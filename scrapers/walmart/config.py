@@ -58,3 +58,78 @@ LOCAL_API_URLS = {
     "province_price_url": "http://127.0.0.1:8000/province/prices",
     "price_history_url": "http://127.0.0.1:8000/price/history/",
 }
+
+STORE_LIST = [
+    {
+        "store_id": "1028",
+        "postal_code": "T0J 0Y0",
+        "city": "Drumheller",
+        "state": "AB"
+    },
+    {
+        "store_id": "1208",
+        "postal_code": "V3B 5R9",
+        "city": "Coquitlam",
+        "state": "BC"
+    },
+    {
+        "store_id": "3117",
+        "postal_code": "R3K 2G6",
+        "city": "Winnipeg",
+        "state": "MB"
+    },
+    {
+        "store_id": "3659",
+        "postal_code": "E1C 0G3",
+        "city": "Moncton",
+        "state": "NB"
+    },
+    {
+        "store_id": "1035",
+        "postal_code": "A2V 2W7",
+        "city": "Labrador City",
+        "state": "NL"
+    },
+    {
+        "store_id": "3081",
+        "postal_code": "B4A 0C2",
+        "city": "Bedford",
+        "state": "NS"
+    },
+    {
+        "store_id": "3121",
+        "postal_code": "X1A 3T3",
+        "city": "Yellowknife",
+        "state": "NT"
+    },
+    {
+        "store_id": "3064",
+        "postal_code": "L6H 6M4",
+        "city": "Oakville",
+        "state": "ON"
+    },
+    {
+        "store_id": "3162",
+        "postal_code": "C1E 2E5",
+        "city": "Charlottetown",
+        "state": "PE"
+    },
+    {
+        "store_id": "1170",
+        "postal_code": "H3S 2B2",
+        "city": "Montreal",
+        "state": "QC"
+    },
+    {
+        "store_id": "5790",
+        "postal_code": "S4H 3N9",
+        "city": "Weyburn",
+        "state": "SK"
+    },
+    {
+        "store_id": "3191",
+        "postal_code": "Y1A 4P9",
+        "city": "Whitehorse",
+        "state": "YT"
+    }
+]

@@ -1,5 +1,5 @@
-from config import LOCAL_API_URLS
-from parsers import get_product_data, parse_product_list, parse_province_price_list, parse_history_list
+from walmart.config import LOCAL_API_URLS
+from walmart.scraper.parsers import (get_product_data, parse_product_list, parse_province_price_list, parse_history_list)
 import requests
 
 PRICE_URL = LOCAL_API_URLS["price_url"]

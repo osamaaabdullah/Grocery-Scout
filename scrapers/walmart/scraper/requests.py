@@ -1,6 +1,6 @@
-from walmart_cookie_generator import generate_cookie
+from walmart.walmart_cookie_generator import generate_cookie
 from dotenv import load_dotenv
-from config import USER_AGENTS
+from walmart.config import USER_AGENTS
 import random 
 import os 
 import urllib3
@@ -35,6 +35,3 @@ def get_response(url:str, page: int, store_id:str, postal_code:str, city:str, st
     except requests.exceptions.RequestException as e:
         print(f"Error getting response: {e}")
         return None
-    
-if __name__ == "__main__":
-    print("hi")

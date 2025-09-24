@@ -61,3 +61,10 @@ def generate_cookie(store_id, postal_code, city, state):
     cookie = {'ACID': acid, 'hasACID': 'true', 'locDataV3': encoded_loc_data, 'locGuestData': encoded_loc_data}
     
     return cookie
+
+#Generate cookie for postman tests
+if __name__ == "__main__":
+    from walmart.config import STORE_LIST
+    store_list = STORE_LIST
+    for store in store_list:
+        print(generate_cookie(store["store_id"], store["postal_code"], store["city"], store["state"]))

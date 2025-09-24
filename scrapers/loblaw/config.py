@@ -55,6 +55,189 @@ API_ENDPOINTS = {
     "price_history_url": "http://127.0.0.1:8000/price/history/",
 }
 
+STORE_LIST = [
+    {
+        "retailer": "Loblaws",
+        "province_stores": [
+            {
+                "store_id": 4429,
+                "province": "AB",
+            },
+            {
+                "store_id": 7494,
+                "province": "BC",
+            },
+            {
+                "store_id": 1011,
+                "province": "ON",
+            }
+        ],
+    },
+    
+    {
+        "retailer": "Zehrs",
+        "province_stores": [
+            {
+                "store_id": 505,
+                "province": "ON",
+            }
+        ],
+    },
+    
+    {
+        "retailer": "Independent",
+        "province_stores": [
+            {
+                "store_id": 1892,
+                "province": "AB",
+            },
+            {
+                "store_id": 1789,
+                "province": "BC",
+            },
+            {
+                "store_id": 7470,
+                "province": "NB",
+            },
+            {
+                "store_id": 1417,
+                "province": "NL",
+            },
+            {
+                "store_id": 1414,
+                "province": "NS",
+            },
+            {
+                "store_id": 9798,
+                "province": "NT",
+            },
+            {
+                "store_id": 7533,
+                "province": "ON",
+            },
+            {
+                "store_id": 7170,
+                "province": "PE",
+            },
+            {
+                "store_id": 7152,
+                "province": "SK",
+            },
+            {
+                "store_id": 1806,
+                "province": "YT",
+            },
+            
+        ],
+    },
+    
+    {
+        "retailer": "Valu-Mart",
+        "province_stores": [
+            {
+                "store_id": 9487,
+                "province": "ON",
+            },
+            {
+                "store_id": 7890,
+                "province": "QC",
+            }
+        ],
+    },
+    
+    {
+        "retailer": "Real Atlantic Superstore",
+        "province_stores": [
+            {
+                "store_id": 361,
+                "province": "NB",
+            },
+            {
+                "store_id": 373,
+                "province": "NS",
+            },
+            {
+                "store_id": 388,
+                "province": "PE",
+            },
+            
+        ],
+    },
+    
+    {
+        "retailer": "Real Canadian Superstore",
+        "province_stores": [
+            {
+                "store_id": 1567,
+                "province": "AB",
+            },
+            {
+                "store_id": 1560,
+                "province": "BC",
+            },
+            {
+                "store_id": 1508,
+                "province": "MB",
+            },
+            {
+                "store_id": 2841,
+                "province": "ON",
+            },
+            {
+                "store_id": 1536,
+                "province": "SK",
+            },
+            {
+                "store_id": 1530,
+                "province": "YT",
+            },
+            
+        ],
+    },
+    
+    {
+        "retailer": "No Frills",
+        "province_stores": [
+            {
+                "store_id": 3448,
+                "province": "AB",
+            },
+            {
+                "store_id": 3985,
+                "province": "BC",
+            },
+            {
+                "store_id": 3442,
+                "province": "MB",
+            },
+            {
+                "store_id": 9536,
+                "province": "NB",
+            },
+            {
+                "store_id": 2707,
+                "province": "NL",
+            },
+            {
+                "store_id": 2706,
+                "province": "NS",
+            },
+            {
+                "store_id": 4012,
+                "province": "ON",
+            },
+            {
+                "store_id": 9537,
+                "province": "PE",
+            },
+            {
+                "store_id": 7579,
+                "province": "SK",
+            },
+            
+        ],
+    }
+]
 
              
             
