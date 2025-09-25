@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 from selectolax.parser import HTMLParser
 from datetime import datetime,timezone
+from config import API_ENDPOINTS
 
 class MetroChainScraper:
     def __init__(self, base_url: str , category_list: list[str], store_name: str, store_id: int = 248 , postal_code: str = "", cookie: str = ""):
@@ -31,10 +32,6 @@ class MetroChainScraper:
         return int(page_number)
     
     def scrape(self):
-        product_list = []
-        price_url = "http://127.0.0.1:8000/prices"
-        product_url = "http://127.0.0.1:8000/products"
-        price_history_url = "http://127.0.0.1:8000/price/history/"
         for category in self.category_list:
             response = self.get_response(1,category)
             last_page_number = self.get_last_page_number(response)
@@ -43,59 +40,153 @@ class MetroChainScraper:
                 response = self.get_response(page_number, category)
                 tree = self.get_tree(response)
                 product_data = tree.css("div.default-product-tile")
-                product_list = [
-                                    {
-                                        "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
-                                        "retailer": "Metro",
-                                        "product_name": product.css_first("div.head__title").text(strip=True, separator=" ").replace(" / ", "/"),
-                                        "product_size": product.css_first("div.pricing__secondary-price").text(strip=True,separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip(),
-                                        "category": product.attributes.get("data-product-category"),
-                                        "product_url": "https://metro.ca" + product.css_first("a.product-details-link").attributes.get("href"),
-                                        "image_url": product.css_first("picture img").attributes.get("src") if product.css_first("picture img") else None
-                                    }
-                            for product in product_data
-                            ]
-                price_list = [
-                                    {
-                                        "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
-                                        "retailer": "Metro",
-                                        "store_id": self.store_id,
-                                        "current_price": parse_price(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), product),
-                                        "regular_price": parse_price((product.css_first(".pricing__before-price span:nth-of-type(2)") or product.css_first(".pricing__sale-price")).text(strip=True,separator=" ")),
-                                        "multi_save_qty": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" ")),
-                                        "multi_save_price": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), "price"),
-                                        "timestamp": datetime.now(timezone.utc).isoformat()
-                                    }
-                            for product in product_data
-                        ]
-                
-                price_history_list= [
-                                    {
-                                        "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
-                                        "retailer": "Metro",
-                                        "store_id": self.store_id,
-                                        "current_price": parse_price(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), product),
-                                        "regular_price": parse_price((product.css_first(".pricing__before-price span:nth-of-type(2)") or product.css_first(".pricing__sale-price")).text(strip=True,separator=" ")),
-                                        "timestamp": datetime.now(timezone.utc).isoformat()
-                                    }
-                            for product in product_data
-                 ]
-                response = requests.post(product_url, json = product_list)
-                print(response.status_code)
-                response = requests.post(price_url, json = price_list)
-                print(response.status_code)
-                response = requests.post(price_history_url, json = price_history_list)
-                print(response.status_code) 
+                product_list = self.parse_product_list(product_data)
+                province_price_list = self.parse_province_price_list(product_data)
+                # price_history_list = self.parse_price_history_list(product_data)                
+                print(province_price_list)
+                # response = requests.post(API_ENDPOINTS["product_url"], json = product_list)
+                # print(response.status_code)
+                # response = requests.post(API_ENDPOINTS["province_price_url"], json = province_price_list)
+                # print(response.status_code)
+                # response = requests.post(API_ENDPOINTS["price_history_url"], json = price_history_list)
+                # print(response.status_code) 
                 time.sleep(2)
 
-def parse_price(price, product = None):
-    if "/" in price:
-        product_size = product.css_first("div.pricing__secondary-price").text(strip=True,separator=" ").replace(r"or\xa", "").strip()
-        product_size = product_size.split()
-        if len(product_size) == 3:
-            price = product_size[0]
-        else: 
-            price = product_size[1]    
+    def parse_product_list(self,product_data):
+        return [
+                    {
+                        "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
+                        "retailer": self.store_name,
+                        "product_name": product.css_first("div.head__title").text(strip=True, separator=" ").replace(" / ", "/"),
+                        "product_size": product.css_first("div.pricing__secondary-price").text(strip=True,separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip(),
+                        "category": product.attributes.get("data-product-category"),
+                        "product_url": "https://metro.ca" + product.css_first("a.product-details-link").attributes.get("href"),
+                        "image_url": product.css_first("picture img").attributes.get("src") if product.css_first("picture img") else None
+                    }
+            for product in product_data
+            ]
+
+    def parse_individual_price_list(self,product_data):
+        return [
+                    {
+                        "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
+                        "retailer": self.store_name,
+                        "store_id": self.store_id,
+                        "current_price": parse_price(product.css_first("div.pricing__sale-price span:nth-of-type(1)").text(strip=True,separator=" "), product),
+                        "regular_price": parse_price((product.css_first(".pricing__before-price span:nth-of-type(2)") or product.css_first(".pricing__sale-price")).text(strip=True,separator=" "), product),
+                        "multi_save_qty": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" ")),
+                        "multi_save_price": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), "price"),
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
+            for product in product_data
+        ]
+
+    # def parse_province_price_list(self,product_data):
+    #     [
+    #                 {
+    #                     "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
+    #                     "retailer": self.store_name,
+    #                     "store_id": self.store_id,
+    #                     "current_price": parse_price((product.css_first("div.pricing__sale-price span:nth-of-type(1)")).text(strip=True,separator=" "), product) if not product.css_first("div.pricing__sale-price span:nth-of-type(2)") else parse_price(product.css_first(".pricing__before-price span:nth-of-type(2)"),product),
+    #                     "regular_price": parse_price((product.css_first(".pricing__before-price span:nth-of-type(2)") or product.css_first(".pricing__sale-price span:nth-of-type(1)")).text(strip=True,separator=" "),product),
+    #                     "unit_type": product.css_first(".pricing__sale-price span:nth-of-type(2) abbr").text(strip=True),
+    #                     "unit_kg": product.css_first("div.pricing__secondary-price span:nth-of-type(1)").text(strip=True,separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip(),
+    #                     "unit_lb": product.css_first("div.pricing__secondary-price span:nth-of-type(2)").text(strip=True,separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip() if product.css_first("div.pricing__secondary-price span:nth-of-type(2)") else None,
+    #                     "multi_save_qty": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" ")),
+    #                     "multi_save_price": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), "price"),
+    #                     "timestamp": datetime.now(timezone.utc).isoformat()
+    #                 }
+    #         for product in product_data
+    #     ]
+
+    def parse_province_price_list(self, product_data):
+        results = []
+
+        for product in product_data:
+            try:
+                product_id = product.css_first("a.product-details-link").attributes.get("href").split("/")[-1]
+
+                # Main / current price
+                sale_span1 = product.css_first("div.pricing__sale-price span:nth-of-type(1)")
+                sale_span2 = product.css_first("div.pricing__sale-price span:nth-of-type(2)")
+                before_span2 = product.css_first(".pricing__before-price span:nth-of-type(2)")
+
+                if sale_span1:
+                    current_price = parse_price(
+                        sale_span1.text(strip=True, separator=" "),
+                        product
+                    ) if not sale_span2 else parse_price(before_span2, product)
+                else:
+                    current_price = None
+
+                # Regular price
+                regular_price = parse_price(
+                    (before_span2 or sale_span1).text(strip=True, separator=" ") if (before_span2 or sale_span1) else "",
+                    product
+                )
+
+                # Unit type safely
+                unit_abbr = product.css_first(".pricing__sale-price span:nth-of-type(2) abbr")
+                unit_type = unit_abbr.text(strip=True) if unit_abbr else None
+
+                # Secondary price (kg/lb)
+                unit_kg_span = product.css_first("div.pricing__secondary-price span:nth-of-type(1)")
+                unit_kg = unit_kg_span.text(strip=True, separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip() if unit_kg_span else None
+
+                unit_lb_span = product.css_first("div.pricing__secondary-price span:nth-of-type(2)")
+                unit_lb = unit_lb_span.text(strip=True, separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip() if unit_lb_span else None
+
+                # Multi-save
+                sale_text = product.css_first("div.pricing__sale-price").text(strip=True, separator=" ") if product.css_first("div.pricing__sale-price") else ""
+                multi_save_qty = parse_multi_save(sale_text)
+                multi_save_price = parse_multi_save(sale_text, "price")
+
+                results.append({
+                    "product_name": product.css_first("div.head__title").text(strip=True, separator=" ").replace(" / ", "/"),
+                    "product_id": product_id,
+                    "retailer": self.store_name,
+                    "store_id": self.store_id,
+                    "current_price": current_price,
+                    "regular_price": regular_price,
+                    "unit_type": unit_type,
+                    "unit_kg": unit_kg,
+                    "unit_lb": unit_lb,
+                    "multi_save_qty": multi_save_qty,
+                    "multi_save_price": multi_save_price,
+                    "timestamp": datetime.now(timezone.utc).isoformat()
+                })
+
+            except Exception as e:
+                # Graceful handling: skip this product but log
+                print(f"Error parsing product: {e}")
+
+        return results
+
+
+
+    def parse_price_history_list(self, product_data):
+        return  [
+                    {
+                        "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
+                        "retailer": self.store_name,
+                        "store_id": self.store_id,
+                        "current_price": parse_price(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), product),
+                        "regular_price": parse_price((product.css_first(".pricing__before-price span:nth-of-type(2)") or product.css_first(".pricing__sale-price")).text(strip=True,separator=" "), product),
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
+            for product in product_data
+            ]
+
+def parse_price(price, product):
+    # if "/" in price:
+    #     product_size = product.css_first("div.pricing__secondary-price").text(strip=True,separator=" ").replace(r"or\xa", "").strip()
+    #     product_size = product_size.split()
+    #     if len(product_size) == 3:
+    #         price = product_size[0]
+    #     else: 
+    #         price = product_size[1]    
+    print(price)
+    return price
     return float(price.replace('$','').replace('¢','').replace("\xa0/ ", "/").replace("avg.","").replace("kg", "").replace("ea.", "").replace("+tx", "").strip())
 
 def parse_multi_save(offer, type:str = None):
