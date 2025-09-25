@@ -106,35 +106,31 @@ class MetroChainScraper:
             try:
                 product_id = product.css_first("a.product-details-link").attributes.get("href").split("/")[-1]
 
-                # Main / current price
-                sale_span1 = product.css_first("div.pricing__sale-price span:nth-of-type(1)")
-                sale_span2 = product.css_first("div.pricing__sale-price span:nth-of-type(2)")
-                before_span2 = product.css_first(".pricing__before-price span:nth-of-type(2)")
+                
+                sale_span1 = product.css_first("div.pricing__sale-price span:nth-of-type(1)") #current price
+                sale_span2 = product.css_first("div.pricing__sale-price span:nth-of-type(2).price-update") #check multi offer
+                secondary_price_span_1 = product.css_first("div.pricing__secondary-price span:nth-of-type(1)")
+                before_span2 = product.css_first(".pricing__before-price span:nth-of-type(2)") #regular price
 
-                if sale_span1:
-                    current_price = parse_price(
-                        sale_span1.text(strip=True, separator=" "),
-                        product
-                    ) if not sale_span2 else parse_price(before_span2, product)
+                #current_price
+                if sale_span2:
+                    current_price = parse_price(secondary_price_span_1.text(strip=True, separator=" "), product)
                 else:
-                    current_price = None
+                    current_price = parse_price(sale_span1.text(strip=True, separator=" "), product)
 
-                # Regular price
-                regular_price = parse_price(
-                    (before_span2 or sale_span1).text(strip=True, separator=" ") if (before_span2 or sale_span1) else "",
-                    product
-                )
+                #regular_price
+                regular_price = parse_price((before_span2 or sale_span1).text(strip=True, separator=" "),product)
 
-                # Unit type safely
-                unit_abbr = product.css_first(".pricing__sale-price span:nth-of-type(2) abbr")
-                unit_type = unit_abbr.text(strip=True) if unit_abbr else None
+                # Unit type 
+                unit_abbr = product.css_first(".pricing__before-price span:nth-of-type(3) abbr") or product.css_first(".pricing__sale-price span:nth-of-type(2) abbr")
+                unit_type = unit_abbr.text(strip=True).replace(" or", "").strip() if unit_abbr else None
 
                 # Secondary price (kg/lb)
                 unit_kg_span = product.css_first("div.pricing__secondary-price span:nth-of-type(1)")
-                unit_kg = unit_kg_span.text(strip=True, separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip() if unit_kg_span else None
+                unit_kg = unit_kg_span.text(strip=True, separator=" ").replace(" / ", "/").replace(" /", "/").replace("or", "").strip() if unit_kg_span else None
 
                 unit_lb_span = product.css_first("div.pricing__secondary-price span:nth-of-type(2)")
-                unit_lb = unit_lb_span.text(strip=True, separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip() if unit_lb_span else None
+                unit_lb = unit_lb_span.text(strip=True, separator=" ").replace(" / ", "/").replace(" /", "/").replace("or", "").strip() if unit_lb_span else None
 
                 # Multi-save
                 sale_text = product.css_first("div.pricing__sale-price").text(strip=True, separator=" ") if product.css_first("div.pricing__sale-price") else ""
@@ -157,7 +153,6 @@ class MetroChainScraper:
                 })
 
             except Exception as e:
-                # Graceful handling: skip this product but log
                 print(f"Error parsing product: {e}")
 
         return results
@@ -177,17 +172,17 @@ class MetroChainScraper:
             for product in product_data
             ]
 
-def parse_price(price, product):
+def parse_price(price, product = None):
     # if "/" in price:
     #     product_size = product.css_first("div.pricing__secondary-price").text(strip=True,separator=" ").replace(r"or\xa", "").strip()
     #     product_size = product_size.split()
     #     if len(product_size) == 3:
     #         price = product_size[0]
     #     else: 
-    #         price = product_size[1]    
-    print(price)
-    return price
-    return float(price.replace('$','').replace('¢','').replace("\xa0/ ", "/").replace("avg.","").replace("kg", "").replace("ea.", "").replace("+tx", "").strip())
+    #         price = product_size[1]   
+    if price is None:
+        return None 
+    return float(price.replace('$','').replace('¢','').replace("\xa0/ ", "/").replace("avg.","").replace("kg", "").replace("ea.", "").replace("+tx", "").replace("/","").replace("or", "").strip())
 
 def parse_multi_save(offer, type:str = None):
     if "/" in offer:
