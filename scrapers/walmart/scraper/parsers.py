@@ -47,7 +47,7 @@ def parse_product_list(product_data):
                 "product_name": product["name"],
                 "product_size": parse_product_size(product["name"]),
                 "category": get_category_name(product["category"]["path"]),
-                "product_url": "https://walmart" + product["canonicalUrl"],
+                "product_url": "https://walmart.ca" + product["canonicalUrl"],
                 "image_url": product["imageInfo"]["thumbnailUrl"],
             }
             for product in product_data if "id" in product
