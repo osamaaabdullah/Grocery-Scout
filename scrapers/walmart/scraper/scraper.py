@@ -8,7 +8,7 @@ def scrape_walmart_category(url, store_id, postal_code, city, state):
     response = get_response(url, 1, store_id, postal_code, city, state)
     last_page_number = get_last_page_number(response)
     failed_page_list = []
-    for page_number in range(1,last_page_number):
+    for page_number in range(1,last_page_number+1):
         print(f"Scraping page: {page_number}")
         response = get_response(url, page_number, store_id, postal_code, city, state)
         try:

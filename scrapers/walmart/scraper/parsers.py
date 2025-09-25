@@ -1,7 +1,6 @@
 from selectolax.parser import HTMLParser
 import json
 from datetime import datetime, timezone
-from walmart.config import BASE_URL
 
 def get_product_data(response):
     tree = HTMLParser(response.text)
@@ -31,13 +30,22 @@ def parse_multi_save(offer, type: str = None):
     else:
         return text[0]
 
+def parse_product_size(product_name: str) -> str:
+    if "," in product_name:
+        product_size = product_name.split(",")[-1].strip()
+        if product_size.replace(" ", "").isalpha():
+            return None
+        else:
+            return product_size
+    return None
+
 def parse_product_list(product_data):
     product_list = [
             {
                 "product_id": product["id"],
                 "retailer": "Walmart",
                 "product_name": product["name"],
-                "product_size": product["priceInfo"]["unitPrice"],
+                "product_size": parse_product_size(product["name"]),
                 "category": get_category_name(product["category"]["path"]),
                 "product_url": "https://walmart" + product["canonicalUrl"],
                 "image_url": product["imageInfo"]["thumbnailUrl"],
@@ -72,6 +80,9 @@ def parse_province_price_list(product_data, province):
                 "province": province,
                 "current_price": parse_price(product["priceInfo"]["linePrice"]),
                 "regular_price": parse_price(product["priceInfo"]["wasPrice"] if product["priceInfo"].get("wasPrice") else product["priceInfo"]["linePrice"]),
+                "unit_type": product["priceInfo"]["priceDisplayCondition"] or None,
+                "unit_price_kg": product["priceInfo"]["unitPrice"],
+                "unit_price_lb": None,
                 "multi_save_qty": parse_multi_save(product["badge"]["text"]),
                 "multi_save_price": parse_multi_save(product["badge"]["text"], "price"),
                 "timestamp": datetime.now(timezone.utc).isoformat()
@@ -95,9 +106,6 @@ def parse_history_list(product_data, store_id):
         ]
     
     return price_history_list
-
-def parse_url(category):
-    return BASE_URL + category
 
 def get_last_page_number(response):
     data = get_product_data(response)
