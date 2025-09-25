@@ -85,7 +85,7 @@ class LoblawChainScraper:
                     "product_id": product["productId"],
                     "retailer": self.store_name,
                     "product_name": product["title"],
-                    "product_size": product["packageSizing"],
+                    "product_size": parse_product_size(product["packageSizing"]),
                     "category": data["categoryDisplayName"],
                     "product_url": self.parse_store_url() + product["link"],
                     "image_url": product["productImage"][0]["imageUrl"]
@@ -118,6 +118,9 @@ class LoblawChainScraper:
                         "province": self.province,
                         "current_price": parse_price(product["pricing"]["price"]),
                         "regular_price": parse_price(product["pricing"]["wasPrice"] if product["pricing"].get("wasPrice") else product["pricing"]["price"]),
+                        "unit_type": product["uom"],
+                        "unit_price_kg": parse_unit_kg(product["packageSizing"]),
+                        "unit_price_lb": parse_unit_lb(product["packageSizing"]),
                         "timestamp": datetime.now(timezone.utc).isoformat()
                     }
                     for product in product_data if "productId" in product
@@ -173,7 +176,24 @@ class LoblawChainScraper:
 
 def parse_price(price):
         return float(price.replace('$','').replace('¢','').strip())
-                    
+
+def parse_product_size(package_size) -> str:
+     if "," in package_size:
+          return package_size.split(",")[0].strip()
+     return None
+
+def parse_unit_kg(unit_kg) -> str:
+     if "," in unit_kg:
+          return unit_kg.split(" ")[2].strip()
+     if "," not in unit_kg:
+          return unit_kg.split(" ")[0].strip()
+     
+def parse_unit_lb(unit_lb) -> str:
+     if "," not in unit_lb:
+          return unit_lb.split(" ")[1].strip()
+     return None
+     
+
 if __name__ == "__main__":
     store_list = STORE_LIST
     store_object_list = []
