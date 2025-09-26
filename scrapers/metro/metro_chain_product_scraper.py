@@ -5,13 +5,15 @@ from dotenv import load_dotenv
 from selectolax.parser import HTMLParser
 from datetime import datetime,timezone
 from config import API_ENDPOINTS
+import json
 
 class MetroChainScraper:
-    def __init__(self, base_url: str , category_list: list[str], store_name: str, store_id: int = 248 , postal_code: str = "", cookie: str = ""):
+    def __init__(self, base_url: str , category_list: list[str], store_name: str, store_id: int, province: str, postal_code: str, cookie: str):
         self.base_url = base_url
         self.category_list = category_list
         self.store_name = store_name
         self.store_id = store_id
+        self.province = province
         self.postal_code = postal_code
         self.cookie = cookie
         load_dotenv()
@@ -36,18 +38,18 @@ class MetroChainScraper:
             response = self.get_response(1,category)
             last_page_number = self.get_last_page_number(response)
             print(f"Currently scraping {self.store_name}; category {category} with {last_page_number} pages")
-            for page_number in range(1,last_page_number+1):
+            for page_number in range(1,4):
                 response = self.get_response(page_number, category)
                 tree = self.get_tree(response)
                 product_data = tree.css("div.default-product-tile")
                 product_list = self.parse_product_list(product_data)
-                province_price_list = self.parse_province_price_list(product_data)
-                # price_history_list = self.parse_price_history_list(product_data)                
-                print(province_price_list)
-                # response = requests.post(API_ENDPOINTS["product_url"], json = product_list)
-                # print(response.status_code)
-                # response = requests.post(API_ENDPOINTS["province_price_url"], json = province_price_list)
-                # print(response.status_code)
+                province_price_list = self.parse_price_list(product_data, "province")
+                price_history_list = self.parse_price_list(product_data, "history")
+                # print(province_price_list)
+                response = requests.post(API_ENDPOINTS["product_url"], json = product_list)
+                print(response.status_code)
+                response = requests.post(API_ENDPOINTS["province_price_url"], json = province_price_list)
+                print(response.status_code)
                 # response = requests.post(API_ENDPOINTS["price_history_url"], json = price_history_list)
                 # print(response.status_code) 
                 time.sleep(2)
@@ -66,40 +68,7 @@ class MetroChainScraper:
             for product in product_data
             ]
 
-    def parse_individual_price_list(self,product_data):
-        return [
-                    {
-                        "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
-                        "retailer": self.store_name,
-                        "store_id": self.store_id,
-                        "current_price": parse_price(product.css_first("div.pricing__sale-price span:nth-of-type(1)").text(strip=True,separator=" "), product),
-                        "regular_price": parse_price((product.css_first(".pricing__before-price span:nth-of-type(2)") or product.css_first(".pricing__sale-price")).text(strip=True,separator=" "), product),
-                        "multi_save_qty": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" ")),
-                        "multi_save_price": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), "price"),
-                        "timestamp": datetime.now(timezone.utc).isoformat()
-                    }
-            for product in product_data
-        ]
-
-    # def parse_province_price_list(self,product_data):
-    #     [
-    #                 {
-    #                     "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
-    #                     "retailer": self.store_name,
-    #                     "store_id": self.store_id,
-    #                     "current_price": parse_price((product.css_first("div.pricing__sale-price span:nth-of-type(1)")).text(strip=True,separator=" "), product) if not product.css_first("div.pricing__sale-price span:nth-of-type(2)") else parse_price(product.css_first(".pricing__before-price span:nth-of-type(2)"),product),
-    #                     "regular_price": parse_price((product.css_first(".pricing__before-price span:nth-of-type(2)") or product.css_first(".pricing__sale-price span:nth-of-type(1)")).text(strip=True,separator=" "),product),
-    #                     "unit_type": product.css_first(".pricing__sale-price span:nth-of-type(2) abbr").text(strip=True),
-    #                     "unit_kg": product.css_first("div.pricing__secondary-price span:nth-of-type(1)").text(strip=True,separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip(),
-    #                     "unit_lb": product.css_first("div.pricing__secondary-price span:nth-of-type(2)").text(strip=True,separator=" ").replace(" / ", "/").replace(" /", "/").replace(r"or\xa", "").strip() if product.css_first("div.pricing__secondary-price span:nth-of-type(2)") else None,
-    #                     "multi_save_qty": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" ")),
-    #                     "multi_save_price": parse_multi_save(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), "price"),
-    #                     "timestamp": datetime.now(timezone.utc).isoformat()
-    #                 }
-    #         for product in product_data
-    #     ]
-
-    def parse_province_price_list(self, product_data):
+    def parse_price_list(self, product_data, list_type: str):
         results = []
 
         for product in product_data:
@@ -136,41 +105,50 @@ class MetroChainScraper:
                 sale_text = product.css_first("div.pricing__sale-price").text(strip=True, separator=" ") if product.css_first("div.pricing__sale-price") else ""
                 multi_save_qty = parse_multi_save(sale_text)
                 multi_save_price = parse_multi_save(sale_text, "price")
+                
+                if list_type.lower().strip() == "province":
+                    results.append({
+                        "product_name": product.css_first("div.head__title").text(strip=True, separator=" ").replace(" / ", "/"),
+                        "product_id": product_id,
+                        "retailer": self.store_name,
+                        "province": self.province,
+                        "current_price": current_price,
+                        "regular_price": regular_price,
+                        "unit_type": unit_type,
+                        "unit_kg": unit_kg,
+                        "unit_lb": unit_lb,
+                        "multi_save_qty": multi_save_qty,
+                        "multi_save_price": multi_save_price,
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    })
+                if list_type.lower().strip() == "individual":
+                    results.append({
+                        "product_id": product_id,
+                        "retailer": self.store_name,
+                        "store_id": self.store_id,
+                        "current_price": current_price,
+                        "regular_price": regular_price,
+                        "unit_type": unit_type,
+                        "unit_kg": unit_kg,
+                        "unit_lb": unit_lb,
+                        "multi_save_qty": multi_save_qty,
+                        "multi_save_price": multi_save_price,
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    })
 
-                results.append({
-                    "product_name": product.css_first("div.head__title").text(strip=True, separator=" ").replace(" / ", "/"),
-                    "product_id": product_id,
-                    "retailer": self.store_name,
-                    "store_id": self.store_id,
-                    "current_price": current_price,
-                    "regular_price": regular_price,
-                    "unit_type": unit_type,
-                    "unit_kg": unit_kg,
-                    "unit_lb": unit_lb,
-                    "multi_save_qty": multi_save_qty,
-                    "multi_save_price": multi_save_price,
-                    "timestamp": datetime.now(timezone.utc).isoformat()
-                })
-
+                if list_type.lower().strip() == "history":
+                    {
+                        "product_id": product_id,
+                        "retailer": self.store_name,
+                        "store_id": self.store_id,
+                        "current_price": current_price,
+                        "regular_price": regular_price,
+                        "timestamp": datetime.now(timezone.utc).isoformat()
+                    }
             except Exception as e:
                 print(f"Error parsing product: {e}")
 
         return results
-
-
-
-    def parse_price_history_list(self, product_data):
-        return  [
-                    {
-                        "product_id": product.css_first("a.product-details-link").attributes.get("href").split("/")[-1],
-                        "retailer": self.store_name,
-                        "store_id": self.store_id,
-                        "current_price": parse_price(product.css_first("div.pricing__sale-price").text(strip=True,separator=" "), product),
-                        "regular_price": parse_price((product.css_first(".pricing__before-price span:nth-of-type(2)") or product.css_first(".pricing__sale-price")).text(strip=True,separator=" "), product),
-                        "timestamp": datetime.now(timezone.utc).isoformat()
-                    }
-            for product in product_data
-            ]
 
 def parse_price(price, product = None):
     # if "/" in price:
@@ -192,20 +170,17 @@ def parse_multi_save(offer, type:str = None):
         return offer[0]
     return None
 
-def create_metro_scraper(postal_code: str, cookie: str, store_id:int = 248) -> MetroChainScraper:
+def create_metro_scraper(store_id:int, postal_code: str, province: str, cookie: str,) -> MetroChainScraper:
     base_url = "https://www.metro.ca/en/online-grocery/aisles/"
     category_list = ["fruits-vegetables", "dairy-eggs", "pantry", "cooked-meals", "value-pack", "beverages", "meat-poultry", "vegan-vegetarian-food", "organic-groceries", "snacks", "frozen", "bread-bakery-products", "deli-prepared-meals", "fish-seafood", "world-cuisine"]
     store_name = "Metro"
-    
-    return MetroChainScraper(base_url, category_list, store_name, store_id, postal_code, cookie)
+    return MetroChainScraper(base_url, category_list, store_name, store_id, province, postal_code, cookie)
 
-def create_food_basics_scraper(store_id:str, postal_code: str, cookie: str) -> MetroChainScraper:
+def create_food_basics_scraper(store_id:str, postal_code: str, province: str, cookie: str) -> MetroChainScraper:
     base_url = "https://www.foodbasics.ca/aisles/"
-    category_list = ["fruits-vegetables", "dairy-eggs", "pantry", "cooked-meals", "value-pack", "beverages", "meat-poultry", "vegan-vegetarian-food", "organic-groceries", "snacks", "frozen", "bread-bakery-products", "deli-prepared-meals", "fish-seafood", "world-cuisine"]
+    category_list = ["fruits-vegetables"]
     store_name = "Food Basics"
-    
-    
-    return MetroChainScraper(base_url, category_list, store_name, store_id, postal_code, cookie)
+    return MetroChainScraper(base_url, category_list, store_name, store_id, province, postal_code, cookie)
 
 def scrape_metro_chains(scraper: MetroChainScraper):
     scraped_data = scraper.scrape()
@@ -213,7 +188,10 @@ def scrape_metro_chains(scraper: MetroChainScraper):
 
  
 if __name__ == "__main__":
-    metro_scraper = create_metro_scraper("", "")
-    scrape_metro_chains(metro_scraper)
+
+    with open("food_basics_store_data.json", "r", encoding="utf-8") as json_data:
+        store_data = json.load(json_data)
     
-                
+    for store in store_data:
+        scraper = create_food_basics_scraper(store["storeID"], store["address-postal"], store["address-province"], store["cookie"])
+        scraper.scrape()

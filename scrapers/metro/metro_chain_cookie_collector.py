@@ -3,7 +3,6 @@ from seleniumbase.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import ElementClickInterceptedException
 import json
 import time
-from tqdm import tqdm
 
 
 class MetroChainCookieCollector:
@@ -91,7 +90,7 @@ def get_food_basics_details():
 
 def collect_metro_chain_cookies(base_url: str, store_name: str, filename: str):
     store_id_list, postal_list= get_all_store_data(filename)
-    for store_id,postal_code in tqdm(zip(store_id_list,postal_list), total=len(store_id_list), desc="Gathering Cookies"):
+    for store_id,postal_code in zip(store_id_list,postal_list):
         store = MetroChainCookieCollector(base_url, store_name, store_id, postal_code)
         store.get_store_cookies()
         store.save_store_cookie(filename)
