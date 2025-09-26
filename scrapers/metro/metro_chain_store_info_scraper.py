@@ -17,7 +17,7 @@ class MetroChainStoreScraper:
         return tree
     
     def scrape_store_data(self):
-        stores = {}
+        stores = []
         response = self.get_response()
         tree = self.get_tree(response)
         store_list = tree.css("li.fs--box-shop")
@@ -28,7 +28,8 @@ class MetroChainStoreScraper:
         
         
         for store,address,city,province,postal in zip(store_list,address_list,city_list,province_list,postal_list):
-            stores[store.attributes.get("data-storeid")] = {
+            stores.append({
+                "storeId": store.attributes.get("data-storeid"),
                 "store-name": store.attributes.get("data-store-name").strip(),
                 "address-street": address.text(strip=True),
                 "address-city": city.text(strip=True),
@@ -38,7 +39,7 @@ class MetroChainStoreScraper:
                 "longitude": store.attributes.get("data-store-lng"),
                 "cookie": "",
             }
-            
+        )
         return stores
     
     def save_store_data(self, store_data):
@@ -66,3 +67,7 @@ if __name__ == "__main__":
     food_basic_scraper = create_food_basics_store_scraper()
     store_data = scrape_metro_chain_store_data(food_basic_scraper)
     food_basic_scraper.save_store_data(store_data)
+
+    metro_scraper = create_metro_store_scraper()
+    store_data = scrape_metro_chain_store_data(metro_scraper)
+    metro_scraper.save_store_data(store_data)

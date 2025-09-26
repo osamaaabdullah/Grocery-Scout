@@ -57,9 +57,15 @@ class MetroChainCookieCollector:
         with open(filename, "r", encoding="utf-8") as json_data:
             store_data = json.load(json_data)
             
-        if self.store_id in store_data:
-            store_data[self.store_id]["cookie"] = self.cookie
-        else:
+        found = False
+
+        for store in store_data:
+            if store["storeId"] == self.store_id:
+                store["cookie"] = self.cookie
+                found = True
+                break
+
+        if not found:
             print("Store not found")
             
         with open(filename, "w", encoding="utf-8") as file:
@@ -70,13 +76,13 @@ class MetroChainCookieCollector:
 def get_all_store_data(filename):
     with open(filename, "r", encoding="utf-8") as json_data:
         store_data = json.load(json_data)
-        store_id_list = []
-        postal_code_list = []
-        for store_id, store_info in store_data.items():
-            if not store_info.get('cookie'):
-                store_id_list.append(store_id)
-                postal_code_list.append(store_info.get('address-postal'))
-        return store_id_list,postal_code_list
+    store_id_list = []
+    postal_code_list = []
+    for store in store_data:
+        if not store["cookie"]:
+            store_id_list.append(store["storeId"])
+            postal_code_list.append(store['address-postal'])
+    return store_id_list,postal_code_list
 
 def get_metro_details():
     base_url = "https://www.metro.ca/en"
@@ -97,5 +103,10 @@ def collect_metro_chain_cookies(base_url: str, store_name: str, filename: str):
         time.sleep(3)
     
 if __name__ == "__main__":
-    base_url, store_name = get_food_basics_details()
-    collect_metro_chain_cookies(base_url, store_name, "food_basics_store_data.json")
+    #collect foodbasics cookies
+    # base_url, store_name = get_food_basics_details()
+    # collect_metro_chain_cookies(base_url, store_name, "food_basics_store_data.json")
+
+    #collect metro cookies
+    base_url, store_name = get_metro_details()
+    collect_metro_chain_cookies(base_url, store_name, "metro_store_data.json")
