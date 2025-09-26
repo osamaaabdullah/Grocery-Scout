@@ -85,12 +85,12 @@ class MetroChainScraper:
 
                 #current_price
                 if sale_span2:
-                    current_price = parse_price(secondary_price_span_1.text(strip=True, separator=" "), product)
+                    current_price = parse_price(secondary_price_span_1.text(strip=True, separator=" "))
                 else:
-                    current_price = parse_price(sale_span1.text(strip=True), product)
+                    current_price = parse_price(sale_span1.text(strip=True))
 
                 #regular_price
-                regular_price = parse_price((before_span2 or sale_span1).text(strip=True, separator=" "),product)
+                regular_price = parse_price((before_span2 or sale_span1).text(strip=True, separator=" "))
 
                 # Unit type 
                 unit_abbr = product.css_first(".pricing__before-price span:nth-of-type(3)") or product.css_first(".pricing__sale-price span:nth-of-type(2)")
@@ -217,21 +217,21 @@ if __name__ == "__main__":
     #test data scraper
     store_data = [
     {
-        "storeId": "6",
-        "store-name": "Marché d'alimentation Ste-Anne-des-Monts",
-        "address-street": "2 Boul. Ste-Anne Est",
-        "address-city": "Sainte-Anne-des-Monts",
-        "address-province": "AB",
-        "address-postal": "G4V 1M5",
-        "latitude": "49.126536000000000",
-        "longitude": "-66.484408000000000",
+        "storeId": "100894",
+        "store-name": "Food  Basics - Cornwall",
+        "address-street": "960 Brookdale Avenue",
+        "address-city": "Cornwall",
+        "address-province": "ON",
+        "address-postal": "K6J 4P5",
+        "latitude": "45.023000000000000",
+        "longitude": "-74.749800000000000",
         "cookie": {
-            "JSESSIONID": "EC546B923FBFFAFECA998213BA4DA49C",
-            "NSC_JOm2hi2vdlmkwecchl5goncwx5ozde2": "5081a3dcb6a39ff76f16f3dbc93bfafd9c350f5312e938e63a85a857624a8435e93601ef"
+            "JSESSIONID": "4266524403A50EAE239A2D4A8E2E8616",
+            "NSC_JOqn3n5pdpcdzsqew4glttdu5clx2bT": "4bb3a3d8c8ca106db1c8a8569b124a66c65eb4cecf536fb156a95682e9518afd0fc15308"
         }
     }]
 
     for store in store_data:
-        # scraper = create_test_food_basics_scraper(store["storeId"], store["address-postal"], store["address-province"], store["cookie"])
-        scraper = create_test_metro_scraper(store["storeId"], store["address-postal"], store["address-province"], store["cookie"])
+        scraper = create_test_food_basics_scraper(store["storeId"], store["address-postal"], store["address-province"], store["cookie"])
+        # scraper = create_test_metro_scraper(store["storeId"], store["address-postal"], store["address-province"], store["cookie"])
         scraper.scrape()

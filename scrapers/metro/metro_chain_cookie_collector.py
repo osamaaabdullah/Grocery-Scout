@@ -104,9 +104,9 @@ def collect_metro_chain_cookies(base_url: str, store_name: str, filename: str):
     
 if __name__ == "__main__":
     #collect foodbasics cookies
-    # base_url, store_name = get_food_basics_details()
-    # collect_metro_chain_cookies(base_url, store_name, "food_basics_store_data.json")
+    base_url, store_name = get_food_basics_details()
+    collect_metro_chain_cookies(base_url, store_name, "food_basics_store_data.json")
 
     #collect metro cookies
-    base_url, store_name = get_metro_details()
-    collect_metro_chain_cookies(base_url, store_name, "metro_store_data.json")
+    # base_url, store_name = get_metro_details()
+    # collect_metro_chain_cookies(base_url, store_name, "metro_store_data.json")
