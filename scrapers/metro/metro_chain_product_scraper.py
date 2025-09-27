@@ -85,7 +85,10 @@ class MetroChainScraper:
 
                 #current_price
                 if sale_span2:
-                    current_price = parse_price(secondary_price_span_1.text(strip=True, separator=" "))
+                    if self.store_name == "Metro":
+                        current_price = parse_price(secondary_price_span_1.text(strip=True, separator=" "))
+                    else:
+                        current_price = parse_current_price_from_multi_save(product.css_first("div.pricing__sale-price").text(strip=True, separator=" "))
                 else:
                     current_price = parse_price(sale_span1.text(strip=True))
 
@@ -157,6 +160,22 @@ def parse_price(price):
     if price is None:
         return None 
     return float(price.replace('$','').replace('¢','').replace("\xa0/ ", "/").replace("avg.","").replace("kg", "").replace("ea.", "").replace("+tx", "").replace("/","").replace("or", "").strip())
+
+def parse_current_price_from_multi_save(offer: str) -> float:
+    """Calculate current(single product) price from foodbasics if multi save offer is shown in website
+
+    Args:
+        offer (str): Multi offer string in the form quantity / price
+
+    Returns:
+        float: Price per unit of product
+    """
+
+    quantity = float(offer.split("/")[0].strip())
+    price = float(offer.split("/")[1].replace("$", "").strip())
+    current_price = price/quantity
+    return current_price
+
 
 def parse_multi_save(offer, type:str = None):
     if offer.split()[-1] == "g" or offer.split()[-1] == "kg" or offer.split()[-1] == "lb":
