@@ -32,7 +32,7 @@ export default function RootLayout({
             <Image src="/logo.svg" alt="Grocery Scout Logo" width= "40" height="40"/>
           </Link>
         </div>
-        <div className="flex-auto p-1 rounded-full content-center border border-zinc-100 inset-shadow-2xs shadow-2xs hover:shadow-md w-1/100 h-10 my-auto min-w-[295px]">
+        <div className="flex-auto p-1 rounded-full content-center border border-zinc-100 inset-shadow-2xs shadow-2xs hover:shadow-md w-1/100 h-10 my-auto min-w-[500px]">
           <SearchBar />
         </div>
 
@@ -40,8 +40,8 @@ export default function RootLayout({
           <ul className = 'flex justify-end gap-4 content-center'>
           
           <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Home</li></Link>
-          <Link href="/products"><li className="hover:bg-zinc-200 p-3 rounded-md">Popular Products</li></Link>
-          <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Top Price Drops</li></Link>
+          <Link href="/products"><li className="hover:bg-zinc-200 p-3 rounded-md">Compare Vegetable Prices</li></Link>
+          <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Compare Vegetable Prices</li></Link>
           <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Sign up</li></Link>
           <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Sign in</li></Link>
         </ul></div>
@@ -50,7 +50,9 @@ export default function RootLayout({
       </nav>
       <hr className="border-zinc-300"/>
         {children}
+      <hr className="border-zinc-300 mt-20 mb-20"/>
       </body>
+      
     </html>
   );
 }
