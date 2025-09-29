@@ -10,6 +10,7 @@ class ProvincePrice(Base):
     province = Column(String, nullable=False) 
     current_price = Column(Float, nullable=False)
     regular_price = Column(Float, nullable=False)
+    price_unit = Column(String, nullable=True)
     unit_type = Column(String, nullable=True)
     unit_price_kg = Column(String, nullable=True)
     unit_price_lb = Column(String, nullable=True)

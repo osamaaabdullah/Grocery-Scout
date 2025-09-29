@@ -17,6 +17,12 @@ def get_category_name(category_list):
 def parse_price(price):
     return float(price.replace('$','').replace('¢','').strip())
 
+def parse_price_unit(price) -> str:
+    if "¢" in price:
+        return "¢"
+    else:
+        return "$"
+
 def parse_multi_save(offer, type: str = None):
     if not offer:
         return None
@@ -79,6 +85,7 @@ def parse_province_price_list(product_data, province):
                 "retailer": "Walmart",
                 "province": province,
                 "current_price": parse_price(product["priceInfo"]["linePrice"]),
+                "price_unit": parse_price_unit(product["priceInfo"]["linePrice"]),
                 "regular_price": parse_price(product["priceInfo"]["wasPrice"] if product["priceInfo"].get("wasPrice") else product["priceInfo"]["linePrice"]),
                 "unit_type": product["priceInfo"]["priceDisplayCondition"] or None,
                 "unit_price_kg": product["priceInfo"]["unitPrice"],

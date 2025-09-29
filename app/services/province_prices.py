@@ -127,13 +127,13 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
         join_query = join_query.filter(ProvincePrice.province == province)
 
     # ---Main Results---
-    main_query = join_query.filter(Product.product_name.ilike(f"{search_str}"))
+    main_query = join_query.filter(Product.product_name.ilike(f"{search_str}%"))
     if category:
         main_query = main_query.filter(Product.category.ilike(category))
     main_results = main_query.all()
     
     # ---Related Results---
-    related_query = join_query.filter(Product.product_name.ilike(f"%{search_str}%")).filter(~Product.product_name.ilike(search_str))
+    related_query = join_query.filter(Product.product_name.ilike(f"%{search_str}%")).filter(~Product.product_name.ilike(f"{search_str}%"))
     if category:
         related_query = related_query.filter(Product.category.ilike(category))
     related_results = related_query.all()
@@ -144,6 +144,7 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                     {
                         "product_id": product.product_id,
                         "retailer": product.retailer,
+                        "provice": province_price.province,
                         "product_name": product.product_name,
                         "product_size": product.product_size,
                         "category": product.category,
@@ -151,6 +152,10 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                         "image_url": product.image_url,
                         "current_price": province_price.current_price,
                         "regular_price": province_price.regular_price,
+                        "price_unit": province_price.price_unit,
+                        "unit_type": province_price.unit_type,
+                        "multi_save_qty": province_price.multi_save_qty,
+                        "multi_save_price": province_price.multi_save_price,
                         "timestamp": province_price.timestamp
                     } for product, province_price in main_results
                 ],

@@ -118,6 +118,7 @@ class LoblawChainScraper:
                         "province": self.province,
                         "current_price": parse_price(product["pricing"]["price"]),
                         "regular_price": parse_price(product["pricing"]["wasPrice"] if product["pricing"].get("wasPrice") else product["pricing"]["price"]),
+                        "price_unit": "$",
                         "unit_type": product["uom"],
                         "unit_price_kg": parse_unit_kg(product["packageSizing"]),
                         "unit_price_lb": parse_unit_lb(product["packageSizing"]),

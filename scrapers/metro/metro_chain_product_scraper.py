@@ -132,6 +132,7 @@ class MetroChainScraper:
                         "store_id": self.store_id,
                         "current_price": current_price,
                         "regular_price": regular_price,
+                        "price_unit": "$",
                         "unit_type": unit_type,
                         "unit_price_kg": unit_kg,
                         "unit_price_lb": unit_lb,
