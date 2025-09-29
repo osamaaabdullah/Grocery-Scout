@@ -118,6 +118,7 @@ class MetroChainScraper:
                         "province": self.province,
                         "current_price": current_price,
                         "regular_price": regular_price,
+                        "price_unit": "$",
                         "unit_type": unit_type,
                         "unit_price_kg": unit_kg,
                         "unit_price_lb": unit_lb,
@@ -132,7 +133,6 @@ class MetroChainScraper:
                         "store_id": self.store_id,
                         "current_price": current_price,
                         "regular_price": regular_price,
-                        "price_unit": "$",
                         "unit_type": unit_type,
                         "unit_price_kg": unit_kg,
                         "unit_price_lb": unit_lb,
@@ -151,7 +151,7 @@ class MetroChainScraper:
                         "timestamp": datetime.now(timezone.utc).isoformat()
                     }
             except Exception as e:
-                failed_products.append(product_name)
+                failed_products.append([product_name, "https://metro.ca" + product.css_first("a.product-details-link").attributes.get("href") if self.store_name == "Metro" else "https://foodbasics.ca" + product.css_first("a.product-details-link").attributes.get("href")])
                 print(f"Error parsing product: {e}")
         
         print(f"Failed to scrape: {failed_products}")
@@ -237,21 +237,21 @@ if __name__ == "__main__":
     #test data scraper
     store_data = [
     {
-        "storeId": "100894",
-        "store-name": "Food  Basics - Cornwall",
-        "address-street": "960 Brookdale Avenue",
-        "address-city": "Cornwall",
-        "address-province": "ON",
-        "address-postal": "K6J 4P5",
-        "latitude": "45.023000000000000",
-        "longitude": "-74.749800000000000",
+        "storeId": "6",
+        "store-name": "Marché d'alimentation Ste-Anne-des-Monts",
+        "address-street": "2 Boul. Ste-Anne Est",
+        "address-city": "Sainte-Anne-des-Monts",
+        "address-province": "QC",
+        "address-postal": "G4V 1M5",
+        "latitude": "49.126536000000000",
+        "longitude": "-66.484408000000000",
         "cookie": {
-            "JSESSIONID": "4266524403A50EAE239A2D4A8E2E8616",
-            "NSC_JOqn3n5pdpcdzsqew4glttdu5clx2bT": "4bb3a3d8c8ca106db1c8a8569b124a66c65eb4cecf536fb156a95682e9518afd0fc15308"
+            "JSESSIONID": "724E8A71D055FEE03C54911F88DFC83D",
+            "NSC_JOm2hi2vdlmkwecchl5goncwx5ozde2": "7ce2a3d9bc1a07adc094e8ce6694c372b50d06f54b3b96018faf78f6d262848bf51e2f13"
         }
     }]
 
     for store in store_data:
-        scraper = create_test_food_basics_scraper(store["storeId"], store["address-postal"], store["address-province"], store["cookie"])
-        # scraper = create_test_metro_scraper(store["storeId"], store["address-postal"], store["address-province"], store["cookie"])
+        # scraper = create_test_food_basics_scraper(store["storeId"], store["address-postal"], store["address-province"], store["cookie"])
+        scraper = create_test_metro_scraper(store["storeId"], store["address-postal"], store["address-province"], store["cookie"])
         scraper.scrape()

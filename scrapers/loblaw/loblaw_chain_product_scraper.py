@@ -1,7 +1,7 @@
 import requests
 from datetime import datetime, timezone
 import time
-from config import STORE_CONFIG, API_ENDPOINTS, STORE_LIST
+from config import STORE_CONFIG, API_ENDPOINTS, STORE_LIST, CATEGORY_LIST, TEST_CATEGORY_LIST, TEST_STORE_LIST
 import os
 from dotenv import load_dotenv
 import random
@@ -21,14 +21,7 @@ class LoblawChainScraper:
             'x-application-type': 'web',
             'x-loblaw-tenant-id': 'ONLINE_GROCERIES',
         }
-        self.category_number_list = ["28195", "28194", "28196", "28197", "28198", "28199", "28200", 
-                     "28224", "28222", "28220", "28225", "28227", "28221", "28226", "28223", "58904",
-                     "28214", "28174", "28170", "59252", "59253", "28215", "28171", "28173", "28216", "59318", "59319",
-                     "28187", "28186", "28247", "28246", "28183", "28184", "28248", "28244", "28243", "28188", "28185", "57088", "28245",
-                     "58466", "58467", "58468", "58469", "58466", "58046", "58309", "58311", "58045", "58498", "58499", "58500", "58501", "58502", "58498", "58557", "58559", "58560", "58558", "58561", "58568", "58563", "58570", "58561", "58812", "58813", "58814", "58816", "58812", "58680", "58687",
-                     "58685", "58690", "58680", "58801", "58802", "58809", "58804", "58801",
-                     "28250", "28249", "28242", "59210", "28162", "28163", "28165", "28238", "28164", "28239", "28241",
-                     "59260", "59271", "29713", "29714", "59391", "29717", "59302", "29924", "29925", "29927", "59320", "59339", "59374", "28251", "28147", "28148", "28149", "28150", "59494"]
+        self.category_number_list = CATEGORY_LIST
     
     def parse_store_id(self):
         return str(self.store_id).zfill(4)
@@ -172,7 +165,7 @@ class LoblawChainScraper:
                 if not has_more:
                     break
                 page_number += 1
-                time.sleep(random.uniform(1,5))
+                time.sleep(5)
             time.sleep(10)
 
 def parse_price(price):
@@ -190,15 +183,14 @@ def parse_unit_kg(unit_kg) -> str:
           return unit_kg.split(" ")[0].strip()
      
 def parse_unit_lb(unit_lb) -> str:
-     if "," not in unit_lb:
+     if "," not in unit_lb and len(unit_lb.split(" "))==2:
           return unit_lb.split(" ")[1].strip()
      return None
      
 
 if __name__ == "__main__":
-    store_list = STORE_LIST
     store_object_list = []
-    for store in store_list:
+    for store in STORE_LIST:
         store_name = store["retailer"]
         store_object_list.extend([LoblawChainScraper(store_name, store_details["store_id"], store_details["province"]) for store_details in store["province_stores"]])
     

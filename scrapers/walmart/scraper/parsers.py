@@ -15,7 +15,7 @@ def get_category_name(category_list):
     return category_list[2].get("name") if len(category_list) >2 else (category_list[1].get("name") if len(category_list) >1 else (category_list[0].get("name")))
 
 def parse_price(price):
-    return float(price.replace('$','').replace('¢','').strip())
+    return float(price.replace('$','').replace('¢','').replace(',','').strip())
 
 def parse_price_unit(price) -> str:
     if "¢" in price:
