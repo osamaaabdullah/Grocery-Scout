@@ -41,7 +41,7 @@ export default function RootLayout({
           
           <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Home</li></Link>
           <Link href="/products"><li className="hover:bg-zinc-200 p-3 rounded-md">Compare Vegetable Prices</li></Link>
-          <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Compare Vegetable Prices</li></Link>
+          <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Compare Fruit Prices</li></Link>
           <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Sign up</li></Link>
           <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Sign in</li></Link>
         </ul></div>

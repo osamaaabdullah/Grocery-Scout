@@ -1,6 +1,6 @@
 
 async function getProducts() {
-  const res = await fetch("http://127.0.0.1:8000/prices", {
+  const res = await fetch("http://127.0.0.1:8000/province/prices?category=vegetable", {
     cache: "no-store",
   });
   const data = await res.json();
