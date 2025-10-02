@@ -68,7 +68,7 @@ def test_province_price_optional_fields():
     data = {
             "product_id": "Test1234",
             "retailer": "Test",
-            "province": 1234,
+            "province": "TS",
             "current_price": 12.3,
             "regular_price": 12.3,
             "price_unit": "$",
@@ -87,6 +87,16 @@ def test_province_price_optional_fields():
     assert province_price.unit_price_lb is None
     assert province_price.multi_save_qty is None
     assert province_price.multi_save_price is None
+    assert province_price.timestamp is None
 
 def test_province_price_missing_fields():
-    pass
+    data = {
+            "product_id": "Test1234",
+            "retailer": "Test",
+            "province": 1234,
+            "current_price": 12.3,
+            "regular_price": 12.3,
+    }
+
+    with pytest.raises(ValidationError):
+        province_price = ProvincePriceCreate(**data)
