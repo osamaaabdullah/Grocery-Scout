@@ -14,3 +14,7 @@ test.py
 /app/schemas/users.py
 /app/schemas/cart.py
 /app/services/users.py
+
+#ignore
+!package.json
+!package-lock.json
