@@ -96,7 +96,7 @@ class MetroChainScraper:
                 regular_price = parse_price((before_span2 or sale_span1).text(strip=True, separator=" "))
 
                 # Unit type 
-                unit_abbr = product.css_first(".pricing__before-price span:nth-of-type(3)") or product.css_first(".pricing__sale-price span:nth-of-type(2)")
+                unit_abbr = product.css_first(".pricing__sale-price span:nth-of-type(2)") or product.css_first(".pricing__before-price span:nth-of-type(3)")
                 unit_type = unit_abbr.text(strip=True).replace(" or", "").strip() if unit_abbr else None
 
                 # Secondary price (kg/lb)

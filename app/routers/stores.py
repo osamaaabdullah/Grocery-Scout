@@ -31,6 +31,6 @@ async def get_stores(province: str = None, db: Session= Depends(get_db)):
     return store_services.get_stores(db)
 
 @router.get("/stores/nearest")
-async def get_nearest_stores_by_postal(postal_code: str, set_distance: float = 5, db: Session = Depends(get_db)):
+async def get_nearest_stores_by_postal(postal_code: str, set_distance: float = 6, db: Session = Depends(get_db)):
     user_geolocation = geocode.get_geocode_from_postal(postal_code)
     return store_services.get_nearest_stores(db, user_geolocation['lat'], user_geolocation['lng'], set_distance)
