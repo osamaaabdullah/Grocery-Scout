@@ -1,6 +1,6 @@
 import pytest
 from unittest.mock import MagicMock, ANY
-from datetime import datetime
+from datetime import datetime, UTC
 
 from app.schemas.store_product import PriceCreate, PriceHistoryCreate
 from app.models.store_product import Product, Price, PriceHistory
@@ -14,7 +14,7 @@ def test_upsert_price_returns_price():
         store_id=1,
         current_price=2.5,
         regular_price=3.0,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC)
     )
     fake_price = Price(**fake_data.model_dump())
 
@@ -37,7 +37,7 @@ def test_upsert_prices_returns_message():
             store_id=1,
             current_price=2.0,
             regular_price=2.5,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         ),
         PriceCreate(
             product_id="p2",
@@ -45,7 +45,7 @@ def test_upsert_prices_returns_message():
             store_id=1,
             current_price=3.0,
             regular_price=3.5,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         ),
     ]
 
@@ -66,7 +66,7 @@ def test_get_product_price_returns_price():
         store_id=1,
         current_price=5.0,
         regular_price=6.0,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
     )
 
     mock_db = MagicMock()
@@ -111,7 +111,7 @@ def test_get_product_and_price_returns_dict():
         store_id=1,
         current_price=3.0,
         regular_price=3.5,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
     )
 
     mock_db = MagicMock()
@@ -145,7 +145,7 @@ def test_get_all_products_and_prices_returns_list():
         store_id=1,
         current_price=1.0,
         regular_price=1.5,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
     )
 
     mock_db = MagicMock()
@@ -166,7 +166,7 @@ def test_get_product_price_history_returns_list():
         store_id=1,
         current_price=2.0,
         regular_price=2.5,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
     )
 
     mock_db = MagicMock()
@@ -184,7 +184,7 @@ def test_create_product_price_history_inserts_new():
         store_id=1,
         current_price=2.5,
         regular_price=3.0,
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(UTC),
     )
     fake_entry = PriceHistory(id=1, **fake_data.model_dump())
 
@@ -213,7 +213,7 @@ def test_bulk_insert_product_price_history_inserts_multiple():
             store_id=1,
             current_price=2.0,
             regular_price=2.5,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         ),
         PriceHistoryCreate(
             product_id="p2",
@@ -221,7 +221,7 @@ def test_bulk_insert_product_price_history_inserts_multiple():
             store_id=1,
             current_price=3.0,
             regular_price=3.5,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(UTC),
         ),
     ]
 

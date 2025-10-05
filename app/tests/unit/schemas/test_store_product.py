@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, UTC
 from pydantic import ValidationError
 from app.schemas.store_product import StoreCreate, ProductCreate, PriceCreate, PriceHistoryCreate
 
@@ -161,7 +161,7 @@ def test_price_create_valid():
             "regular_price": 12.3,
             "multi_save_qty": 2,
             "multi_save_price": 12.3,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(UTC)
     }
 
     price = PriceCreate(**data)
@@ -191,7 +191,7 @@ def test_price_create_invalid():
             "regular_price": 12.3,
             "multi_save_qty": 2,
             "multi_save_price": 12.3,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(UTC)
     }
     with pytest.raises(ValidationError):
         price = PriceCreate(**data)    
@@ -222,7 +222,7 @@ def test_price_missing_required_fields():
             "current_price": 12.3,
             "multi_save_qty": 2,
             "multi_save_price": 12.3,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(UTC),
     }
     with pytest.raises(ValidationError):
         price = PriceCreate(**data)
@@ -234,7 +234,7 @@ def test_price_history_create_valid():
             "store_id": 1234,
             "current_price": 12.3,
             "regular_price": 12.3,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(UTC)
     }
 
     price_history = PriceHistoryCreate(**data)
@@ -258,7 +258,7 @@ def test_price_history_create_invalid():
             "store_id": "1234five",
             "current_price": 12.3,
             "regular_price": 12.3,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(UTC)
     }
     with pytest.raises(ValidationError):
         price_history = PriceHistoryCreate(**data)   
@@ -268,7 +268,7 @@ def test_price_history_missing_required_fields():
             "product_id": "Test1234",
             "retailer": "Test",
             "store_id": 1234,
-            "timestamp": datetime.utcnow(),
+            "timestamp": datetime.now(UTC),
     }
     with pytest.raises(ValidationError):
         price_history = PriceHistoryCreate(**data)

@@ -1,5 +1,5 @@
 import pytest
-from datetime import datetime
+from datetime import datetime, UTC
 from pydantic import ValidationError
 from app.schemas.province_price import ProvincePriceCreate
 
@@ -16,7 +16,7 @@ def test_province_price_create_valid():
             "unit_price_lb": "1.23/100lb",
             "multi_save_qty": 2,
             "multi_save_price": 12.3,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(UTC)
     }
 
     province_price = ProvincePriceCreate(**data)
@@ -58,7 +58,7 @@ def test_province_price_create_invalid():
             "unit_price_lb": "1.23/100lb",
             "multi_save_qty": 2,
             "multi_save_price": 12.3,
-            "timestamp": datetime.utcnow()
+            "timestamp": datetime.now(UTC)
     }
 
     with pytest.raises(ValidationError):

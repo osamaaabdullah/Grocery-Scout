@@ -38,7 +38,7 @@ def upsert_price(db: Session, data: ProvincePriceCreate) -> ProvincePrice:
         set_= upsert_price_fields(province_price_instace)
     )
     db.execute(province_price_instace)
-    db.commit
+    db.commit()
     return db.query(ProvincePrice).filter_by(product_id = data.product_id, retailer = data.retailer, province = data.province).first()
 
 def upsert_prices(db: Session, data: list[ProvincePriceCreate]) -> dict:
