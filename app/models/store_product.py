@@ -29,8 +29,8 @@ class Product(Base):
     category = Column(String, nullable=True)
     product_url = Column(String, nullable=True)
     image_url = Column(String, nullable=True)
-    prices = relationship("Price", back_populates="product")
-    price_histories = relationship("PriceHistory", back_populates="product")
+    prices = relationship("Price", back_populates="product", overlaps="store,prices")
+    price_histories = relationship("PriceHistory", back_populates="product", overlaps="store,price_histories")
     province_prices = relationship("ProvincePrice", back_populates="product")
 
     __table_args__ = (PrimaryKeyConstraint('product_id', 'retailer'),)
@@ -45,8 +45,8 @@ class Price(Base):
     multi_save_qty = Column(Integer, nullable=True)
     multi_save_price = Column(Float, nullable=True)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
-    product = relationship("Product", back_populates="prices")
-    store = relationship("Store", back_populates="prices")
+    product = relationship("Product", back_populates="prices", overlaps="store,prices")
+    store = relationship("Store", back_populates="prices", overlaps="product,prices")
     
     __table_args__ = (
         PrimaryKeyConstraint('product_id', 'retailer', 'store_id'),
@@ -64,8 +64,8 @@ class PriceHistory(Base):
     regular_price = Column(Float, nullable = False)
     timestamp = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     
-    product = relationship("Product", back_populates="price_histories")
-    store = relationship("Store", back_populates="price_histories")
+    product = relationship("Product", back_populates="price_histories", overlaps="store,price_histories")
+    store = relationship("Store", back_populates="price_histories", overlaps="product,price_histories")
     
     __table_args__ = (
         ForeignKeyConstraint(
