@@ -1,11 +1,12 @@
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 
 from app.main import app
 from app.database import Base, get_db
 from app.models.store_product import Store, Product, Price
+from app.models.province_price import ProvincePrice
 from datetime import datetime, UTC
 
 
@@ -17,6 +18,11 @@ engine = create_engine(
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
+@event.listens_for(engine, "connect")
+def set_sqlite_pragma(dbapi_connection, connection_record):
+    cursor = dbapi_connection.cursor()
+    cursor.execute("PRAGMA foreign_keys=ON")
+    cursor.close()
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_database():
@@ -134,6 +140,40 @@ class SeedDataFactory:
         self.db.commit()
         self.db.refresh(price)
         return price
+    
+    def create_province_price(
+        self,
+        product_id: str,
+        retailer: str = "TestRetailer",
+        province: str = "TS",
+        current_price: float = 1.0,
+        regular_price: float = 1.0,
+        price_unit: str = "$",
+        unit_type: str = "kg",
+        unit_price_kg: str = None,
+        unit_price_lb: str = None,
+        multi_save_qty: int = None,
+        multi_save_price: float = None
+    ) -> ProvincePrice:
+        province_price = ProvincePrice(
+            product_id=product_id,
+            retailer=retailer,
+            province = province,
+            current_price=current_price,
+            regular_price=regular_price,
+            price_unit = price_unit,
+            unit_type = unit_type,
+            unit_price_kg = unit_price_kg,
+            unit_price_lb = unit_price_lb,
+            multi_save_qty=multi_save_qty,
+            multi_save_price=multi_save_price,
+            timestamp = datetime.now(UTC)
+        )
+
+        self.db.add(province_price)
+        self.db.commit()
+        self.db.refresh(province_price)
+        return province_price
 
 
 @pytest.fixture(scope="function")
@@ -157,15 +197,24 @@ def dummy_data(db_session):
         longitude = 54.321
     )
 
-    product = Product(
-        product_id="BASE1",
+    product_1 = Product(
+        product_id="TEST01",
         retailer="Metro",
-        product_name="Baseline Milk",
+        product_name="Milk",
         product_size="1L",
         category="Dairy",
     )
-    price = Price(
-        product_id="BASE1",
+
+    product_2 = Product(
+        product_id="TEST02",
+        retailer="Metro",
+        product_name="Yogurt",
+        product_size="1L",
+        category="Yogurt",
+    )
+
+    price_1 = Price(
+        product_id="TEST01",
         retailer="Metro",
         store_id=1,
         current_price=2.99,
@@ -173,8 +222,20 @@ def dummy_data(db_session):
         timestamp = datetime.now(UTC)
     )
 
-    db_session.add(product)
-    db_session.add(price)
+    price_2 = Price(
+        product_id="TEST02",
+        retailer="Metro",
+        store_id=1,
+        current_price=4.99,
+        regular_price=5.49,
+        timestamp = datetime.now(UTC)
+    )
+
+    db_session.add(store)
+    db_session.add(product_1)
+    db_session.add(product_2)
+    db_session.add(price_1)
+    db_session.add(price_2)
     db_session.commit()
 
-    return {"product": product, "price": price}
+    return {"product": [product_1, product_2], "price": [price_1, price_2]}
