@@ -83,7 +83,7 @@ def get_product_price(db:Session, product_id: str, retailer: str | None = None) 
     if retailer:
         query = query.filter(ProvincePrice.retailer.ilike(retailer.strip()))
     
-    return query.first()
+    return query.all()
     
 
 def delete_price(db:Session, product_id: str) -> dict:
@@ -144,7 +144,7 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                     {
                         "product_id": product.product_id,
                         "retailer": product.retailer,
-                        "provice": province_price.province,
+                        "province": province_price.province,
                         "product_name": product.product_name,
                         "product_size": product.product_size,
                         "category": product.category,

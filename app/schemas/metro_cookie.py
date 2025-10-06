@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from datetime import datetime
 
 class CookieBase(BaseModel):
@@ -15,5 +15,4 @@ class CookieCreate(CookieBase):
     pass
 
 class Cookie(CookieBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

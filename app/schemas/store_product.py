@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 from datetime import datetime
 
@@ -17,8 +17,7 @@ class StoreCreate(StoreBase):
     pass
 
 class Store(StoreBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
         
 
 class ProductBase(BaseModel):
@@ -35,8 +34,7 @@ class ProductCreate(ProductBase):
     pass
 
 class Product(ProductBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
         
 
 class PriceBase(BaseModel):
@@ -53,8 +51,7 @@ class PriceCreate(PriceBase):
     pass 
 
 class Price(PriceBase):
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
         
 
 class PriceHistoryBase(BaseModel):
@@ -70,8 +67,7 @@ class PriceHistoryCreate(PriceHistoryBase):
 
 class PriceHistory(PriceHistoryBase):
     id: int
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 
