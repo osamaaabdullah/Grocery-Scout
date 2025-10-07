@@ -3,7 +3,8 @@ from ..schemas.province_price import ProvincePriceCreate, ProvincePrice
 from ..models.province_price import ProvincePrice
 from ..models.store_product import Product
 from sqlalchemy.dialects.postgresql import insert, Insert
-
+from sqlalchemy import asc, desc
+from math import ceil
 
 def upsert_price_fields(province_price_instace: Insert) -> dict:
     """Helper function that defines the fields to update when a price conflict occurs during an upsert. 
@@ -176,7 +177,7 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                 ]
     }
 
-def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None) -> list[dict]:
+def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None, page: int = 1, limit: int = 20, sort_by: str = None, sort_order: str = None) -> list[dict]:
     """Fetch all products and their prices
 
     Args:
@@ -192,18 +193,39 @@ def get_all_products_and_prices(db:Session, category: str | None = None, retaile
         query = query.filter(Product.category.ilike(f"%{category.strip()}%"))
     if retailer:
         query = query.filter(Product.retailer.ilike(retailer.strip()))
+    if sort_by == "price" and sort_order =="asc":
+        query = query.order_by(asc(ProvincePrice.current_price))
+    if sort_by == "price" and sort_order =="desc":
+        query = query.order_by(desc(ProvincePrice.current_price))
+    if sort_by == "product" and sort_order =="asc":
+        query = query.order_by(asc(Product.product_name))
+    if sort_by == "price" and sort_order =="desc":
+        query = query.order_by(desc(Product.product_name))
+
+    total_items = query.count()
+    max_pages = ceil(total_items/limit) if limit >0 else 1
+    query = query.offset((page-1)*limit).limit(limit)
     results = query.all()
-    return [
-        {
-            "product_id": product.product_id,
-            "retailer": product.retailer,
-            "product_name": product.product_name,
-            "product_size": product.product_size,
-            "category": product.category,
-            "product_url": product.product_url,
-            "image_url": product.image_url,
-            "current_price": province_price.current_price,
-            "regular_price": province_price.regular_price,
-            "timestamp": province_price.timestamp
-        } for product, province_price in results
-    ]
+    return {
+                "max_page": max_pages,
+                "page": page,
+                "results": [
+                            {
+                                "product_id": product.product_id,
+                                "retailer": product.retailer,
+                                "province": province_price.province,
+                                "product_name": product.product_name,
+                                "product_size": product.product_size,
+                                "category": product.category,
+                                "product_url": product.product_url,
+                                "image_url": product.image_url,
+                                "current_price": province_price.current_price,
+                                "regular_price": province_price.regular_price,
+                                "price_unit": province_price.price_unit,
+                                "unit_type": province_price.unit_type,
+                                "multi_save_qty": province_price.multi_save_qty,
+                                "multi_save_price": province_price.multi_save_price,
+                                "timestamp": province_price.timestamp
+                    } for product, province_price in results
+                ]
+    }

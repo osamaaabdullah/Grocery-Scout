@@ -87,12 +87,12 @@ def test_get_all_product_prices(client,create_seed_data):
     assert response.status_code == 200
     data = response.json()
 
-    assert isinstance(data, list)
-    assert any(p["product_id"] == "PROD01" for p in data)
-    assert any(p["product_id"] == "PROD02" for p in data)
-    assert any(p["retailer"] == "Metro" for p in data)
-    assert any(p["product_name"] == "Organic Orange" for p in data)
-    assert any(p["product_name"] == "Organic Grapes" for p in data)
+    assert isinstance(data, dict)
+    assert any(p["product_id"] == "PROD01" for p in data["results"])
+    assert any(p["product_id"] == "PROD02" for p in data["results"])
+    assert any(p["retailer"] == "Metro" for p in data["results"])
+    assert any(p["product_name"] == "Organic Orange" for p in data["results"])
+    assert any(p["product_name"] == "Organic Grapes" for p in data["results"])
 
 @pytest.mark.integration
 def test_get_product_by_search(client, create_seed_data):
