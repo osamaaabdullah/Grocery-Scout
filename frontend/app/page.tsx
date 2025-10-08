@@ -31,7 +31,7 @@ export default function Home() {
     async function fetchData() {
       try {
         const [vegRes, fruitRes] = await Promise.all([
-          fetch("http://127.0.0.1:8000/province/prices/search?product_name=acorn"),
+          fetch("http://127.0.0.1:8000/province/prices/search?product_name=tomato"),
           fetch("http://127.0.0.1:8000/province/prices/search?product_name=apple"),
         ]);
 
@@ -53,7 +53,6 @@ export default function Home() {
             }
           }
 
-          // If fewer than 6 unique retailers, fill with fallback
           return [...unique, ...fallback].slice(0, 6);
         }
 
@@ -128,7 +127,6 @@ export default function Home() {
                       <p className="min-h-12 font-semibold text-base">{item.product_name}</p>
                       <div>
                         <p className="text-sm text-base">{item.retailer}</p>
-                        <p>{(item.province)}</p>
                         <p>{(item.category)}</p>
                       </div>
                       <div>

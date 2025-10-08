@@ -18,7 +18,7 @@ interface Product {
 
 async function getProducts(type: string) {
   const res = await fetch(
-    `http://127.0.0.1:8000/province/prices?category=${type}`,
+    `http://127.0.0.1:8000/province/prices?category=${type}&page=1&sort_by=price&sort_order=asc`,
     { cache: "no-store" }
   );
 
@@ -27,7 +27,7 @@ async function getProducts(type: string) {
   }
 
   const data = await res.json();
-  return data.slice(0, 20); // take first 20
+  return data.results; 
 }
 
 export default async function ProductsPage({
@@ -61,11 +61,11 @@ export default async function ProductsPage({
               <p className="min-h-12 font-semibold text-base">{item.product_name}</p>
               <div>
                 <p className="text-sm text-base">{item.retailer}</p>
-                <p>{(item.province)}</p>
+                <p></p>
                 <p>{(item.category)}</p>
               </div>
               <div>
-                {item.price_unit && item.price_unit.trim().startsWith("¢") ? <p className="font-bold">${(item.current_price/100).toFixed(2)} {(item.unit_type)}</p> : <p className="font-bold">${(item.current_price).toFixed(2)} {(item.unit_type)}</p>}
+                {item.price_unit === "¢" ? <p className="font-bold">${(item.current_price/100).toFixed(2)} {(item.unit_type)}</p> : <p className="font-bold">${(item.current_price).toFixed(2)} {(item.unit_type)}</p>}
               </div>
               <div><a href = {(item.product_url)} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">View Product</a></div>
             </div>
