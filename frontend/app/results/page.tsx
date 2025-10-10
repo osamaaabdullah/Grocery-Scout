@@ -61,14 +61,14 @@ useEffect(() => {
 }, [search, postalCode]);
 
   return (
-    <div className="p-4 w-7/10 mx-auto">
+    <div className="p-4 2xl:w-7/10 mx-auto">
       <h2 className="text-xl font-semibold mb-4">
         Search Results for "{search}" near "{postalCode}"
       </h2>
 
       {loading && <p>Loading...</p>}
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div className="grid [@media(max-width:800px)]:grid-cols-2 grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {results.map((item) => (
           <div key={`${item.retailer}-${item.product_id}`} className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md h-140 flex flex-col bg-white">
             <div className="h-1/2 flex items-center justify-center">
