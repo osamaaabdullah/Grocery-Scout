@@ -3,12 +3,10 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 
-type HrefBuilder = (page: number) => string;
-
 interface Pagination{
     page: number;
     totalPages: number;
-    hrefForPage?: HrefBuilder;
+    type: string;
 }
 
 function buildPages(current: number, total: number): Array<number|"dots"> {
@@ -34,7 +32,7 @@ function buildPages(current: number, total: number): Array<number|"dots"> {
 export default function Pagination({
     page,
     totalPages,
-    hrefForPage = (p) => `?page=${p}`
+    type
 }: Pagination){
 
     const pages = buildPages(page, totalPages);
@@ -51,7 +49,7 @@ export default function Pagination({
                 <li>
                     {page>1? (
                         <Link 
-                        href={hrefForPage(page-1)} rel="prev" className={`${baseItem} ${idle}`}>
+                        href={`/products/${type}/page/${page - 1}`}  rel="prev" className={`${baseItem} ${idle}`}>
                             <ChevronLeft className="size-10"/>
                         </Link>
                     ):(
@@ -68,7 +66,7 @@ export default function Pagination({
                             <span className={`${baseItem} ${selected}`}>{p}</span>
                         ):(
                             <Link
-                                href={hrefForPage(p)} className={`${baseItem} ${idle}`}>
+                                href={`/products/${type}/page/${p}`} className={`${baseItem} ${idle}`}>
                                     {p}
                                 </Link>
                         )}
@@ -77,7 +75,7 @@ export default function Pagination({
                 <li>
                     {page <totalPages ? (
                         <Link
-                            href = {hrefForPage(page+1)} rel="next" className={`${baseItem} ${idle}`}>
+                            href = {`/products/${type}/page/${page + 1}`}  rel="next" className={`${baseItem} ${idle}`}>
                                 <ChevronRight className="size-10"/>
                             </Link>
                     ):

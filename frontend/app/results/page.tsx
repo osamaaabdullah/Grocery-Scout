@@ -24,7 +24,8 @@ interface Product {
 export default function ResultsPage() {
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || "";
-  const postalCode = searchParams.get("postalCode") || "";
+  const postalCode = searchParams.get("postal_code") || "";
+  const distance = searchParams.get("set_distance") || "5";
   const [results, setResults] = useState<Product[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -35,7 +36,7 @@ useEffect(() => {
     setLoading(true);
     try {
       const res = await fetch(
-        `http://127.0.0.1:8000/province/prices/search-nearby?product_name=${encodeURIComponent(search)}&postal_code=${encodeURIComponent(postalCode)}`
+        `http://127.0.0.1:8000/province/prices/search-nearby?product_name=${encodeURIComponent(search)}&postal_code=${encodeURIComponent(postalCode)}&set_distance=${encodeURIComponent(distance)}`
       );
 
       if (!res.ok) {

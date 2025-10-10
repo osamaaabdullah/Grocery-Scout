@@ -70,17 +70,17 @@ export default function Home() {
 
 
   return (
-    <div className="w-7/10 mx-auto">
+    <div className="w-9/10 mx-auto 2xl:w-7/10">
       <main>
-        <div className="mt-16 text-center">
+        <div className="mt-10 text-center">
           <h1 className="font-bold text-5xl">
             <span className="text-[#FCB53B]">Save money</span> on your{" "}
             <span className="text-[#97B067]">groceries.</span>
           </h1>
         </div>
 
-        <div className="text-center mt-4">
-          <h2 className="font-bold text-3xl">
+        <div className="text-center mt-8">
+          <h2 className="font-bold text-2xl">
             <span className="text-[#97B067]">Grocery</span>{" "}
             <span className="text-[#FCB53B]">Scout</span> helps you compare grocery
             prices across retailers in Canada for free.
@@ -88,7 +88,7 @@ export default function Home() {
         </div>
 
         <div className="m-2 text-center">
-          <button className="m-2 p-3 min-w-[170px] font-bold rounded-full bg-[#D4F6FF]">
+          <button className="m-2 p-3 font-bold rounded-full bg-[#D4F6FF]">
             Sign up for Free
           </button>
           <button className="m-2 p-3 min-w-[120px] font-bold rounded-full bg-[#D4F6FF]">
@@ -97,7 +97,7 @@ export default function Home() {
         </div>
 
         <div>
-          <div className="mx-auto my-auto w-7/10 min-w-[500px] mt-10 mb-10 m-30 p-1 rounded-full content-center border border-zinc-100 inset-shadow-2xs shadow-2xs hover:shadow-md h-10">
+          <div className="mx-auto my-auto mt-10 mb-10 m-30 p-1 rounded-full content-center border border-zinc-100 inset-shadow-2xs shadow-2xs hover:shadow-md h-10 xl:w-2/3">
             <SearchBar/>
           </div>
         </div>
@@ -107,12 +107,12 @@ export default function Home() {
         ) : (
           <>
             <section className="mt-10">
-              <h3 className="font-semibold text-xl mb-4">Compare Vegetable Prices</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 ">
+              <h3 className="font-semibold text-center text-xl mb-4">Compare Vegetable Prices</h3>
+              <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-4 ">
                 {vegetables.map((item) => (
                   <div
                     key={`${item.retailer}-${item.product_id}`}
-                    className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md h-140 flex flex-col bg-white"
+                    className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md min-h-120 xl:h-140 flex flex-col bg-white"
                   >
                     <div className="h-1/2 flex items-center justify-center">
                       <img
@@ -140,8 +140,8 @@ export default function Home() {
             </section>
 
             <section className="mt-10">
-              <h3 className="font-semibold text-xl mb-4">Compare Fruits Prices</h3>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 ">
+              <h3 className="font-semibold text-center text-xl mb-4">Compare Fruits Prices</h3>
+              <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 ">
                 {fruits.map((item) => (
                   <div
                     key={`${item.retailer}-${item.product_id}`}
