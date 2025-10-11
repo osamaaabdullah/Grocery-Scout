@@ -87,11 +87,11 @@ export default function Home() {
           </h2>
         </div>
 
-        <div className="m-2 text-center">
+        <div className="m-2 text-center hidden">
           <button className="m-2 p-3 font-bold rounded-full bg-[#D4F6FF]">
             Sign up for Free
           </button>
-          <button className="m-2 p-3 min-w-[120px] font-bold rounded-full bg-[#D4F6FF]">
+          <button className="m-2 p-3 min-w-[120px] font-bold rounded-full bg-[#D4F6FF] hidden">
             Log In
           </button>
         </div>
@@ -107,7 +107,7 @@ export default function Home() {
         ) : (
           <>
             <section className="mt-10">
-              <h3 className="font-semibold text-center text-xl mb-4">Compare Vegetable Prices</h3>
+              <h3 className="font-semibold text-center xl:text-left text-xl mb-4">Compare Vegetable Prices</h3>
               <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-4 ">
                 {vegetables.map((item) => (
                   <div
@@ -140,7 +140,7 @@ export default function Home() {
             </section>
 
             <section className="mt-10">
-              <h3 className="font-semibold text-center text-xl mb-4">Compare Fruits Prices</h3>
+              <h3 className="font-semibold text-center xl:text-left text-xl mb-4">Compare Fruits Prices</h3>
               <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 ">
                 {fruits.map((item) => (
                   <div

@@ -42,8 +42,8 @@ export default function Navbar(){
             <Link href="/"><li className="p-2 hover:bg-zinc-100 rounded-md">Home</li></Link>
             <Link href="/products/vegetable/page/1"><li className="p-2 hover:bg-zinc-100 rounded-md">Vegetables</li></Link>
             <Link href="/products/fruit/page/1"><li className="p-2 hover:bg-zinc-100 rounded-md">Fruits</li></Link>
-            <Link href="/"><li className="p-2 hover:bg-zinc-100 rounded-md">Sign up</li></Link>
-            <Link href="/"><li className="p-2 hover:bg-zinc-100 rounded-md">Sign in</li></Link>
+            <Link href="/"><li className="p-2 hover:bg-zinc-100 rounded-md hidden">Sign up</li></Link>
+            <Link href="/"><li className="p-2 hover:bg-zinc-100 rounded-md hidden">Sign in</li></Link>
           </ul>
         </div>
         )}
@@ -53,8 +53,8 @@ export default function Navbar(){
           <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Home</li></Link>
           <Link href="/products/vegetable/page/1"><li className="hover:bg-zinc-200 p-3 rounded-md">Compare Vegetable Prices</li></Link>
           <Link href="/products/fruit/page/1"><li className="hover:bg-zinc-200 p-3 rounded-md">Compare Fruit Prices</li></Link>
-          <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Sign up</li></Link>
-          <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md">Sign in</li></Link>
+          <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md hidden">Sign up</li></Link>
+          <Link href="/"><li className="hover:bg-zinc-200 p-3 rounded-md hidden">Sign in</li></Link>
         </ul>
       </nav>
     )
