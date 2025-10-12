@@ -7,16 +7,19 @@ from typing import List
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from ..database import get_db
+from ..models import User
+from typing import Annotated
+from app.services.auth import role_required
 
 
 router = APIRouter()
 
 @router.post("/store")
-async def upsert_store(store: StoreCreate, db: Session = Depends(get_db)):
+async def upsert_store(store: StoreCreate, db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return store_services.upsert_store(db,store)
 
 @router.post("/stores")
-async def upsert_stores(store: List[StoreCreate], db: Session = Depends(get_db)):
+async def upsert_stores(store: List[StoreCreate], db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     store_services.upsert_stores(db,store)
     return store_services.get_stores(db)
 

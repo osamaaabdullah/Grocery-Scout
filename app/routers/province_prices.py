@@ -9,15 +9,18 @@ from typing import List
 from sqlalchemy.orm import Session
 from fastapi import Depends
 from ..database import get_db
+from ..models import User
+from typing import Annotated
+from app.services.auth import role_required
 
 router = APIRouter(prefix="/province")
 
 @router.post("/price")
-async def upsert_price(price: ProvincePriceCreate, db: Session = Depends(get_db)):
+async def upsert_price(price: ProvincePriceCreate, db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return province_price_services.upsert_price(db, price)
 
 @router.post("/prices")
-async def upsert_prices(prices: List[ProvincePriceCreate], db: Session = Depends(get_db)):
+async def upsert_prices(prices: List[ProvincePriceCreate], db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     province_price_services.upsert_prices(db,prices)
     return product_services.get_products(db) 
 
@@ -41,5 +44,5 @@ def search_nearby_products(product_name: str, postal_code: str, set_distance: fl
 
 
 @router.delete("/price/{product_id}")
-async def delete_price(product_id: str, db: Session = Depends(get_db)):
+async def delete_price(product_id: str, db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return province_price_services.delete_price(db,product_id)
