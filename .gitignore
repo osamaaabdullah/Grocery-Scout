@@ -9,11 +9,7 @@ product_url.txt
 test.py
 
 #fastapi
-/app/models/user.py
-/app/routers/auth.py
-/app/schemas/users.py
 /app/schemas/cart.py
-/app/services/users.py
 
 #scraper
 /scrapers
@@ -21,3 +17,4 @@ test.py
 #ignore
 !package.json
 !package-lock.json
+!tsconfig.json
