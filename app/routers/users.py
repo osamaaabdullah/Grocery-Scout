@@ -12,6 +12,7 @@ router = APIRouter(prefix="/user")
 async def create_user(user: UserCreate, db: Session = Depends(get_db)):
     return user_services.create_user(db, user)
 
-@router.delete("/delete")
-async def delete_user(email: str, db: Session = Depends(get_db)):
-    return user_services.delete_user(db, email)
+#implement user only delete
+# @router.delete("/delete")
+# async def delete_user(email: str, db: Session = Depends(get_db)):
+#     return user_services.delete_user(db, email)

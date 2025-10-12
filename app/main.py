@@ -1,12 +1,12 @@
 from fastapi import FastAPI
-from .routers import store_router, product_router,price_router, province_router
+from .routers import store_router, product_router,price_router, province_router, auth_router, user_router
 # from .routers.auth import router as auth_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Grocery Scout API", version="1.0.0")
 
 origins = [
-    "http://localhost:3000",  # Next.js frontend
+    "http://localhost:3000", 
     "http://127.0.0.1:3000", 
 ]
 
@@ -39,3 +39,9 @@ app.include_router(price_router)
 
 #price endpoints for province
 app.include_router(province_router)
+
+#user endpoints
+app.include_router(user_router)
+
+#authentication endpoints
+app.include_router(auth_router)

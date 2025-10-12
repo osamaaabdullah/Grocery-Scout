@@ -1,5 +1,5 @@
 import os
-import utils
+import app.services.utils as utils
 import jwt
 from jwt.exceptions import InvalidTokenError
 import app.services.users as user_services
@@ -17,7 +17,7 @@ ALGORITHM = os.getenv("ALGORITHM")
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES"))
 
 
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="api/auth/token")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
 
 
 
@@ -71,6 +71,7 @@ async def get_current_active_user(
 
 def role_required(required_role:str):
     async def verify_role(current_user: Annotated[User, Depends(get_current_user)]):
+        print(f"Current user: {current_user.email}, role: {current_user.role}")
         if current_user.role != required_role:
             raise HTTPException(status_code=403, detail="Not enough permission")
         return current_user

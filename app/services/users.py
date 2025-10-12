@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from ..models.user import User
 from ..schemas.user import UserCreate, UserOut
 from fastapi import HTTPException
-from utils import get_password_hash
+from app.services.utils import get_password_hash
 
 
 def create_user(db: Session, user: UserCreate) ->UserOut:
