@@ -9,7 +9,7 @@ product_url.txt
 test.py
 
 #fastapi
-/app/schemas/cart.py
+/backend/schemas/cart.py
 
 #scraper
 /scrapers
