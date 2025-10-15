@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
-from ..models.user import User
-from ..schemas.user import UserCreate, UserOut
+from backend.models.user import User
+from backend.schemas.user import UserCreate, UserOut
 from fastapi import HTTPException
 from backend.services.utils import get_password_hash
 

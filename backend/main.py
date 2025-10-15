@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from .routers import store_router, product_router,price_router, province_router, auth_router, user_router
+from backend.routers import store_router, product_router,price_router, province_router, auth_router, user_router
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Grocery Scout API", version="1.0.0")

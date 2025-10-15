@@ -8,9 +8,9 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta, timezone
 from typing import Annotated
-from ..schemas.user import TokenData
-from ..models.user import User
-from ..database import get_db
+from backend.schemas.user import TokenData
+from backend.models.user import User
+from backend.database import get_db
 
 SECRET_KEY = os.getenv("SECRET_KEY")
 ALGORITHM = os.getenv("ALGORITHM")

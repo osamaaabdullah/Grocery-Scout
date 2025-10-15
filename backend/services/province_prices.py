@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
-from ..schemas.province_price import ProvincePriceCreate, ProvincePrice
-from ..models.province_price import ProvincePrice
-from ..models.store_product import Product
+from backend.schemas.province_price import ProvincePriceCreate, ProvincePrice
+from backend.models.province_price import ProvincePrice
+from backend.models.store_product import Product
 from sqlalchemy.dialects.postgresql import insert, Insert
 from sqlalchemy import asc, desc
 from math import ceil

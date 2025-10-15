@@ -6,8 +6,8 @@ from ..schemas.store_product import PriceCreate, PriceHistoryCreate
 from typing import List
 from sqlalchemy.orm import Session
 from fastapi import Depends
-from ..database import get_db
-from ..models import User
+from backend.database import get_db
+from backend.models import User
 from typing import Annotated
 from backend.services.auth import role_required
 

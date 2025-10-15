@@ -2,12 +2,12 @@ import backend.services.stores as store_services
 import backend.services.geocode as geocode
 
 from fastapi import APIRouter
-from ..schemas.store_product import StoreCreate
+from backend.schemas.store_product import StoreCreate
 from typing import List
 from sqlalchemy.orm import Session
 from fastapi import Depends
-from ..database import get_db
-from ..models import User
+from backend.database import get_db
+from backend.models import User
 from typing import Annotated
 from backend.services.auth import role_required
 

@@ -1,5 +1,5 @@
-from ..models.store_product import Product
-from ..schemas.store_product import ProductCreate
+from backend.models.store_product import Product
+from backend.schemas.store_product import ProductCreate
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert, Insert
 

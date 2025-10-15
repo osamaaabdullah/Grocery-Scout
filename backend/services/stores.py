@@ -1,6 +1,6 @@
-from ..models.store_product import Store
-from ..schemas.store_product import StoreCreate
-from ..schemas.store_product import Store as StoreSchema
+from backend.models.store_product import Store
+from backend.schemas.store_product import StoreCreate
+from backend.schemas.store_product import Store as StoreSchema
 from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert, Insert

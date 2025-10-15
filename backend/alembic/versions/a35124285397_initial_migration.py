@@ -53,29 +53,6 @@ def upgrade() -> None:
     sa.Column('longitude', sa.Float(), nullable=True),
     sa.PrimaryKeyConstraint('retailer', 'store_id')
     )
-    op.create_table('users',
-    sa.Column('user_id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('username', sa.String(), nullable=False),
-    sa.Column('email', sa.String(), nullable=False),
-    sa.Column('hashed_password', sa.String(), nullable=True),
-    sa.Column('is_verified', sa.Boolean(), nullable=False),
-    sa.Column('provider', sa.String(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('updated_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.PrimaryKeyConstraint('user_id'),
-    sa.UniqueConstraint('email'),
-    sa.UniqueConstraint('username')
-    )
-    op.create_table('oauth_accounts',
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('provider', sa.String(), nullable=False),
-    sa.Column('provider_account_id', sa.String(), nullable=False),
-    sa.Column('access_token', sa.String(), nullable=True),
-    sa.Column('refresh_token', sa.String(), nullable=True),
-    sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
-    sa.PrimaryKeyConstraint('id')
-    )
     op.create_table('price_history',
     sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
     sa.Column('product_id', sa.String(), nullable=False),
@@ -100,22 +77,6 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['retailer', 'product_id'], ['products.retailer', 'products.product_id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['retailer', 'store_id'], ['stores.retailer', 'stores.store_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('product_id', 'retailer', 'store_id')
-    )
-    op.create_table('refresh_tokens',
-    sa.Column('id', sa.Integer(), autoincrement=True, nullable=False),
-    sa.Column('user_id', sa.Integer(), nullable=False),
-    sa.Column('hashed_token', sa.String(), nullable=False),
-    sa.Column('expires_at', sa.DateTime(), nullable=False),
-    sa.Column('remember_me', sa.Boolean(), nullable=False),
-    sa.Column('revoked', sa.Boolean(), nullable=False),
-    sa.Column('replaced_by', sa.Integer(), nullable=True),
-    sa.Column('device', sa.String(), nullable=True),
-    sa.Column('ip_address', sa.String(), nullable=True),
-    sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.Column('last_used', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=False),
-    sa.ForeignKeyConstraint(['replaced_by'], ['refresh_tokens.id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['users.user_id'], ),
-    sa.PrimaryKeyConstraint('id')
     )
     # ### end Alembic commands ###
 

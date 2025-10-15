@@ -1,5 +1,5 @@
-from ..models.store_product import Product, Price, PriceHistory
-from ..schemas.store_product import PriceCreate, PriceHistoryCreate
+from backend.models.store_product import Product, Price, PriceHistory
+from backend.schemas.store_product import PriceCreate, PriceHistoryCreate
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert, Insert
 from sqlalchemy import func

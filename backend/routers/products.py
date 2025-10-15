@@ -1,13 +1,13 @@
 import backend.services.products as product_services
 
 from fastapi import APIRouter
-from ..schemas.store_product import ProductCreate
-from ..models.user import User
-from ..services.auth import role_required
+from backend.schemas.store_product import ProductCreate
+from backend.models.user import User
+from backend.services.auth import role_required
 from typing import List
 from sqlalchemy.orm import Session
 from fastapi import Depends
-from ..database import get_db
+from backend.database import get_db
 from typing import Annotated
 
 router = APIRouter()

@@ -1,5 +1,5 @@
-from ..models.metro_cookie import MetroChainCookie
-from ..schemas.metro_cookie import CookieCreate
+from backend.models.metro_cookie import MetroChainCookie
+from backend.schemas.metro_cookie import CookieCreate
 from sqlalchemy.orm import Session
 
 

@@ -1,8 +1,8 @@
 import backend.services.users as user_services
 
 from fastapi import APIRouter, Depends
-from ..schemas.user import UserCreate, UserOut, Token
-from ..database import get_db
+from backend.schemas.user import UserCreate, UserOut, Token
+from backend.database import get_db
 from sqlalchemy.orm import Session
 
 

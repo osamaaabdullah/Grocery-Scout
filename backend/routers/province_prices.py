@@ -4,12 +4,12 @@ import backend.services.stores as store_services
 import backend.services.geocode as geocode_services
 
 from fastapi import APIRouter
-from ..schemas.province_price import ProvincePriceCreate
+from backend.schemas.province_price import ProvincePriceCreate
 from typing import List
 from sqlalchemy.orm import Session
 from fastapi import Depends
-from ..database import get_db
-from ..models import User
+from backend.database import get_db
+from backend.models import User
 from typing import Annotated
 from backend.services.auth import role_required
 
