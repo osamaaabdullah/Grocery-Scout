@@ -12,7 +12,7 @@ from typing import Annotated
 from backend.services.auth import role_required
 
 
-router = APIRouter()
+router = APIRouter(tags = ["Stores"])
 
 @router.post("/store")
 async def upsert_store(store: StoreCreate, db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):

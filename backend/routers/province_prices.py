@@ -13,7 +13,7 @@ from backend.models import User
 from typing import Annotated
 from backend.services.auth import role_required
 
-router = APIRouter(prefix="/province")
+router = APIRouter(prefix="/province", tags = ["Province prices"])
 
 @router.post("/price")
 async def upsert_price(price: ProvincePriceCreate, db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
@@ -21,8 +21,7 @@ async def upsert_price(price: ProvincePriceCreate, db: Session = Depends(get_db)
 
 @router.post("/prices")
 async def upsert_prices(prices: List[ProvincePriceCreate], db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
-    province_price_services.upsert_prices(db,prices)
-    return product_services.get_products(db) 
+    return province_price_services.upsert_prices(db,prices)
 
 @router.get("/price/{product_id}")
 async def get_product_price(product_id: str, retailer: str = None, db: Session = Depends(get_db)):

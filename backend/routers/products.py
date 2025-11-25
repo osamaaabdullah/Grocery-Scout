@@ -10,7 +10,7 @@ from fastapi import Depends
 from backend.database import get_db
 from typing import Annotated
 
-router = APIRouter()
+router = APIRouter(tags = ["Products"])
 
 
 @router.post("/product")
@@ -19,9 +19,8 @@ async def upsert_product(product: ProductCreate, db: Session = Depends(get_db), 
 
 @router.post("/products")
 async def upsert_products(products: List[ProductCreate], db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
-    product_services.upsert_products(db,products)
-    return product_services.get_products(db)
-
+    return product_services.upsert_products(db,products)
+    
 @router.get("/products")
 async def get_products(product_name: str = None, category: str = None, retailer: str = None, db: Session = Depends(get_db)):
     return product_services.get_products(db, product_name, category, retailer)

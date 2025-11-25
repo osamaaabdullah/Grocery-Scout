@@ -11,7 +11,7 @@ from backend.models import User
 from typing import Annotated
 from backend.services.auth import role_required
 
-router = APIRouter()
+router = APIRouter(tags=["Individual Store Prices"])
 
 @router.post("/price")
 async def upsert_price(price: PriceCreate, db: Session = Depends(get_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
