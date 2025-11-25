@@ -6,6 +6,33 @@ from sqlalchemy.dialects.postgresql import insert, Insert
 from sqlalchemy import asc, desc, func
 from math import ceil
 
+def postal_to_province(postal: str):
+    """Helper function to convert postal code to province
+
+    Args:
+        postal (str): postal code
+
+    Returns:
+        _type_: Province Code
+    """
+    if not postal:
+        return None
+    mapping = {
+        "A": "NL",
+        "B": "NS",
+        "C": "PE",
+        "E": "NB",
+        "G": "QC", "H": "QC", "J": "QC",
+        "K": "ON", "L": "ON", "M": "ON", "N": "ON", "P": "ON",
+        "R": "MB",
+        "S": "SK",
+        "T": "AB",
+        "V": "BC",
+        "X": "NT",
+        "Y": "YT",
+    }
+    return mapping.get(postal[0].upper())
+
 def upsert_price_fields(province_price_instace: Insert) -> dict:
     """Helper function that defines the fields to update when a price conflict occurs during an upsert. 
 
@@ -188,7 +215,7 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                 ]
     }
 
-def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None, page: int = 1, limit: int = 20, sort_by: str = None, sort_order: str = None, multi_offer: bool = False) -> list[dict]:
+def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None, postal_code: str | None = None, province: str = "ON", page: int = 1, limit: int = 20, sort_by: str = None, sort_order: str = None, multi_offer: bool = False) -> list[dict]:
     """Fetch all products and their prices
 
     Args:
@@ -199,11 +226,16 @@ def get_all_products_and_prices(db:Session, category: str | None = None, retaile
     Returns:
         list[dict]: List of all products and their prices
     """
+    if postal_code:
+        province = postal_to_province(postal_code)
+
     query = db.query(Product,ProvincePrice).join(ProvincePrice, (Product.product_id == ProvincePrice.product_id) & (Product.retailer == ProvincePrice.retailer))
     if category:
         query = query.filter(Product.category.ilike(f"%{category.strip()}%"))
     if retailer:
         query = query.filter(Product.retailer.ilike(retailer.strip()))
+    if province:
+        query = query.filter(ProvincePrice.province.ilike(province))
     if sort_by == "price" and sort_order =="asc":
         query = query.order_by(asc(ProvincePrice.current_price))
     if sort_by == "price" and sort_order =="desc":

@@ -28,8 +28,8 @@ async def get_product_price(product_id: str, retailer: str = None, db: Session =
     return province_price_services.get_product_price(db, product_id, retailer)
 
 @router.get("/prices")
-async def get_all_products_and_prices(category: str = None, retailer: str = None, page: int = 1, sort_by: str = None, sort_order: str = None, multi_offer: bool = False, db: Session = Depends(get_db)):
-    return province_price_services.get_all_products_and_prices(db, category, retailer,page, limit = 20, sort_by=sort_by, sort_order=sort_order, multi_offer=multi_offer)
+async def get_all_products_and_prices(category: str = None, retailer: str = None, province: str = "ON", postal_code: str = None, page: int = 1, sort_by: str = None, sort_order: str = None, multi_offer: bool = False, db: Session = Depends(get_db)):
+    return province_price_services.get_all_products_and_prices(db, category, retailer, postal_code=postal_code, province=province, page = page, limit = 20, sort_by=sort_by, sort_order=sort_order, multi_offer=multi_offer)
 
 @router.get("/prices/search")
 async def search_price_by_product(product_name: str, category: str = None, multi_offer: bool = False, db: Session = Depends(get_db)):
