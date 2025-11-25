@@ -12,7 +12,7 @@ def create_user(db: Session, user: UserCreate) ->UserOut:
             detail="Email already exists"
         )
     hashed_password = get_password_hash(user.password)
-    user = User(email = user.email, hashed_password = hashed_password, is_active = True)
+    user = User(email = user.email, hashed_password = hashed_password, name = user.name)
     db.add(user)
     db.commit()
     db.refresh(user)
