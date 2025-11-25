@@ -103,7 +103,7 @@ def delete_price(db:Session, product_id: str) -> dict:
     db.commit()
     return {"deleted_entries": price}
 
-def get_product_and_price(db:Session, search_str: str, category: str | None = None, province: str = "ON", nearest_stores: list[dict] | None = None) -> dict:
+def get_product_and_price(db:Session, search_str: str, category: str | None = None, province: str = "ON", nearest_stores: list[dict] | None = None, multi_offer: bool = False) -> dict:
     """Fetch products and their prices matching a search string.
 
     Args:
@@ -130,6 +130,8 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
     ts_vector = func.to_tsvector('english', Product.product_name)
     ts_query  = func.plainto_tsquery('english', search_str)
 
+    if multi_offer:
+        join_query = join_query.filter(ProvincePrice.multi_save_qty.isnot(None))
 
     # ---Main Results---
     main_query = join_query.filter(ts_vector.op('@@')(ts_query))
@@ -169,6 +171,7 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                     {
                         "product_id": product.product_id,
                         "retailer": product.retailer,
+                        "province": province_price.province,
                         "product_name": product.product_name,
                         "product_size": product.product_size,
                         "category": product.category,
@@ -176,12 +179,16 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                         "image_url": product.image_url,
                         "current_price": province_price.current_price,
                         "regular_price": province_price.regular_price,
+                        "price_unit": province_price.price_unit,
+                        "unit_type": province_price.unit_type,
+                        "multi_save_qty": province_price.multi_save_qty,
+                        "multi_save_price": province_price.multi_save_price,
                         "timestamp": province_price.timestamp
                     } for product, province_price in related_results
                 ]
     }
 
-def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None, page: int = 1, limit: int = 20, sort_by: str = None, sort_order: str = None) -> list[dict]:
+def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None, page: int = 1, limit: int = 20, sort_by: str = None, sort_order: str = None, multi_offer: bool = False) -> list[dict]:
     """Fetch all products and their prices
 
     Args:
@@ -205,6 +212,8 @@ def get_all_products_and_prices(db:Session, category: str | None = None, retaile
         query = query.order_by(asc(Product.product_name))
     if sort_by == "price" and sort_order =="desc":
         query = query.order_by(desc(Product.product_name))
+    if multi_offer:
+        query = query.filter(ProvincePrice.multi_save_qty.isnot(None))
 
     total_items = query.count()
     max_pages = ceil(total_items/limit) if limit >0 else 1
