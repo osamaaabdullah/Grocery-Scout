@@ -3,7 +3,7 @@ from backend.schemas.province_price import ProvincePriceCreate, ProvincePrice
 from backend.models.province_price import ProvincePrice
 from backend.models.store_product import Product
 from sqlalchemy.dialects.postgresql import insert, Insert
-from sqlalchemy import asc, desc
+from sqlalchemy import asc, desc, func
 from math import ceil
 
 def upsert_price_fields(province_price_instace: Insert) -> dict:
@@ -127,14 +127,18 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
     else:
         join_query = join_query.filter(ProvincePrice.province == province)
 
+    ts_vector = func.to_tsvector('english', Product.product_name)
+    ts_query  = func.plainto_tsquery('english', search_str)
+
+
     # ---Main Results---
-    main_query = join_query.filter(Product.product_name.ilike(f"{search_str}%"))
+    main_query = join_query.filter(ts_vector.op('@@')(ts_query))
     if category:
         main_query = main_query.filter(Product.category.ilike(category))
     main_results = main_query.all()
     
     # ---Related Results---
-    related_query = join_query.filter(Product.product_name.ilike(f"%{search_str}%")).filter(~Product.product_name.ilike(f"{search_str}%"))
+    related_query = join_query.filter(ts_vector.op('@@')(ts_query), ~Product.product_name.ilike(f"{search_str}%")).filter(~Product.product_name.ilike(f"{search_str}%"))
     if category:
         related_query = related_query.filter(Product.category.ilike(category))
     related_results = related_query.all()
