@@ -6,7 +6,7 @@ authors = [
     {name = "Osama Abdullah Bin Salim",email = "160643549+osamaaabdullah@users.noreply.github.com"}
 ]
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.10, <4.0.0"
 dependencies = [
     "fastapi[standard] (>=0.119.0,<0.120.0)",
     "psycopg2 (>=2.9.11,<3.0.0)",
@@ -17,7 +17,8 @@ dependencies = [
     "pwdlib[argon2] (>=0.2.1,<0.3.0)",
     "pytest (>=8.4.2,<9.0.0)",
     "dotenv (>=0.9.9,<0.10.0)",
-    "alembic (>=1.17.0,<2.0.0)"
+    "alembic (>=1.17.0,<2.0.0)",
+    "fastapi-mail (>=1.5.8,<2.0.0)"
 ]
 
 

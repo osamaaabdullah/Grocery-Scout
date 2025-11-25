@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from backend.models.user import User
 from backend.schemas.user import UserCreate, UserOut
 from fastapi import HTTPException
-from backend.services.utils import get_password_hash
+from backend.services.utils import get_password_hash, password_strength
 
 
 def create_user(db: Session, user: UserCreate) ->UserOut:
@@ -11,6 +11,7 @@ def create_user(db: Session, user: UserCreate) ->UserOut:
             status_code=400,
             detail="Email already exists"
         )
+    password_strength(user.password)
     hashed_password = get_password_hash(user.password)
     user = User(email = user.email, hashed_password = hashed_password, name = user.name)
     db.add(user)

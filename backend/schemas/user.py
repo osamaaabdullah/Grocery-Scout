@@ -1,20 +1,20 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, EmailStr
 from typing import Optional
 from datetime import datetime
 
 
 class UserBase(BaseModel):
-    email: str
+    email: EmailStr
     is_verified: bool
     provider: Optional[str] = None
 
 class UserCreate(BaseModel):
-    email: str
+    email: EmailStr
     password: str
     name: str
 
 class UserLogin(BaseModel):
-    email: str
+    email: EmailStr
     password: str
 
 class UserOut(UserBase):
@@ -44,4 +44,10 @@ class Token(BaseModel):
     token_type: str
 
 class TokenData(BaseModel):
-    email: str | None = None
+    email: EmailStr | None = None
+
+class PasswordResetEmail(BaseModel):
+    email: EmailStr
+
+class PasswordReset(BaseModel):
+    password: str

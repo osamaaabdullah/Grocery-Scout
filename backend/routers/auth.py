@@ -14,6 +14,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                             detail= "Incorrect email or password",
                             headers= {"WWW-Authenticate": "Bearer"})
+    if not user.is_verified:
+        raise HTTPException(status_code=400,
+                            detail="Account is not verified")
     access_token = auth_services.create_access_token(user)
     return {
         "access_token": access_token,
