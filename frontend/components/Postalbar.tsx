@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { MapPinned, ChevronDown, LocateFixed } from "lucide-react";
 
 interface PostalbarProps {
@@ -13,29 +14,32 @@ interface PostalbarProps {
 export default function Postalbar({
   postalCode = "",
   setPostalCode = () => {},
-  distance,
+  distance = "5",
   setDistance = () => {},
 }: PostalbarProps) {
   const [open, setOpen] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
-    const urlPostal = params.get("postal_code");
-    const urlDistance = params.get("set_distance");
+  // Load postal + distance from URL on first render
+  useEffect(() => {
+    const urlPostal = searchParams.get("postal_code");
+    const urlDistance = searchParams.get("set_distance");
 
     if (urlPostal && !postalCode) setPostalCode(urlPostal);
     if (urlDistance && !distance) setDistance(urlDistance);
   }, []);
 
+  // --- NEXT.JS NAVIGATION UPDATE ---
   const updateURLParams = (postal: string, dist: string) => {
     const url = new URL(window.location.href);
 
     if (postal) url.searchParams.set("postal_code", postal);
     if (dist) url.searchParams.set("set_distance", dist);
 
-    window.history.replaceState(null, "", url.toString());
+    router.replace(url.toString()); // <--- KEY FIX
   };
 
   const handleUseLocation = () => {
@@ -51,8 +55,10 @@ export default function Postalbar({
           const data = await res.json();
 
           if (data.address.postcode) {
-            setPostalCode(data.address.postcode);
-            updateURLParams(data.address.postcode, distance || "5");
+            const pc = data.address.postcode;
+
+            setPostalCode(pc);
+            updateURLParams(pc, distance);
           } else {
             alert("Postal code not found");
           }
@@ -69,8 +75,6 @@ export default function Postalbar({
       }
     );
   };
-
-  const selectedDistance = distance || "5";
 
   return (
     <div className="relative w-full text-left">
@@ -96,6 +100,7 @@ export default function Postalbar({
         <div className="absolute mt-2 w-60 bg-white border border-gray-100 rounded-xl shadow-lg z-50 p-3 [@media(max-width:480px)]:w-full">
           <div className="flex flex-col gap-2">
 
+            {/* POSTAL CODE INPUT */}
             <div className="mt-3 flex gap-2 items-center">
               <input
                 type="text"
@@ -107,7 +112,7 @@ export default function Postalbar({
 
               <button
                 onClick={() => {
-                  updateURLParams(postalCode, selectedDistance);
+                  updateURLParams(postalCode, distance);
                   setOpen(false);
                 }}
                 className="text-sm font-bold hover:underline m-2 p-2 mx-auto bg-[#D4F6FF] rounded-full"
@@ -116,6 +121,7 @@ export default function Postalbar({
               </button>
             </div>
 
+            {/* USE MY LOCATION */}
             <button
               onClick={handleUseLocation}
               disabled={loadingLocation}
@@ -125,14 +131,15 @@ export default function Postalbar({
               {loadingLocation ? "Detecting..." : "Use My Location"}
             </button>
 
+            {/* DISTANCE SELECT */}
             <div className="flex items-center justify-between px-3 py-2 mt-1 border-t border-gray-100">
               <label className="text-sm text-gray-600">Distance (km)</label>
               <select
-                value={selectedDistance}
+                value={distance}
                 onChange={(e) => {
-                  const newDist = e.target.value;
-                  setDistance(newDist);
-                  updateURLParams(postalCode, newDist);
+                  const dist = e.target.value;
+                  setDistance(dist);
+                  updateURLParams(postalCode, dist);
                   setOpen(false);
                 }}
                 className="border border-gray-200 rounded-md text-sm p-1"

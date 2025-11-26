@@ -21,7 +21,7 @@ interface Product {
 
 async function getProducts(type: string, page: number, postalCode: string | null) {
   const baseUrl =
-    `${process.env.BACKEND_URL}/province/prices?category=${type}&page=${page}&sort_by=price&sort_order=asc`;
+    `${process.env.BACKEND_URL}/province/prices?page=${page}&sort_by=price&sort_order=asc&multi_offer=true`;
 
   const url = postalCode
     ? `${baseUrl}&postal_code=${postalCode}`

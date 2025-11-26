@@ -72,12 +72,16 @@ export default function Navbar() {
             </li>
 
             <li className="p-2 hover:bg-zinc-100 rounded-md">
+              <Link href={withPostal("/products/multi-offers/page/1")}>Multi Offers</Link>
+            </li>
+
+            {/* <li className="p-2 hover:bg-zinc-100 rounded-md">
               <Link href={withPostal("/products/vegetable/page/1")}>Vegetables</Link>
             </li>
 
             <li className="p-2 hover:bg-zinc-100 rounded-md">
               <Link href={withPostal("/products/fruit/page/1")}>Fruits</Link>
-            </li>
+            </li> */}
 
             {!loggedIn && (
               <li className="p-2 hover:bg-zinc-100 rounded-md">
@@ -108,6 +112,10 @@ export default function Navbar() {
         </li>
 
         <li className="hover:bg-zinc-200 p-3 rounded-md">
+          <Link href={withPostal("/products/multi-offers/page/1")}>Check Multi Offers</Link>
+        </li>
+
+        {/* <li className="hover:bg-zinc-200 p-3 rounded-md">
           <Link href={withPostal("/products/vegetable/page/1")}>
             Compare Vegetable Prices
           </Link>
@@ -117,7 +125,7 @@ export default function Navbar() {
           <Link href={withPostal("/products/fruit/page/1")}>
             Compare Fruit Prices
           </Link>
-        </li>
+        </li> */}
 
         {!loggedIn && (
           <li className="hover:bg-zinc-200 p-3 rounded-md bg-[#D4F6FF] font-bold">
