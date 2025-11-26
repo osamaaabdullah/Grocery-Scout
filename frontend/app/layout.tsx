@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Postalbar from "@/components/Postalbar";
+import { Suspense } from "react";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -16,21 +17,28 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
-      <body
-        className={inter.className}
-      >
-      <div className=" sm:w-9/10 mx-auto 3xl:w-8/10"><Navbar/></div>
-      <div className="[@media(min-width:480px)]:hidden w-95/100 m-1 mx-auto"><Postalbar/></div>
-      <hr className="border-zinc-300"/>
+      <body className={inter.className}>
+        <Suspense fallback={null}>
+          <div className="sm:w-9/10 mx-auto 3xl:w-8/10">
+            <Navbar />
+          </div>
+
+          <div className="[@media(min-width:480px)]:hidden w-95/100 m-1 mx-auto">
+            <Postalbar />
+          </div>
+        </Suspense>
+
+        <hr className="border-zinc-300" />
+
         {children}
-      <hr className="border-zinc-300 mt-20 mb-20"/>
+
+        <hr className="border-zinc-300 mt-20 mb-20" />
       </body>
-      
     </html>
   );
 }
