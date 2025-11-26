@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import Image from "next/image";
 import SearchBar from "@/components/SearchBar";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 
 interface Product {
   product_id: string;
@@ -23,22 +25,34 @@ interface Product {
 }
 
 export default function Home() {
+  const searchParams = useSearchParams();
+  const postalCode = searchParams.get("postal_code");
+  const setDistance = searchParams.get("set_distance") || "5";
+
   const [vegetables, setVegetables] = useState<Product[]>([]);
   const [fruits, setFruits] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     async function fetchData() {
       try {
-        const [vegRes, fruitRes] = await Promise.all([
-          fetch("http://127.0.0.1:8000/province/prices/search?product_name=tomato"),
-          fetch("http://127.0.0.1:8000/province/prices/search?product_name=apple"),
-        ]);
+        setLoading(true);
+
+        const vegURL = postalCode
+          ? `/api/search?search=tomato&postal_code=${postalCode}&set_distance=${setDistance}`
+          : `/api/search?search=tomato`;
+
+        const fruitURL = postalCode
+          ? `/api/search?search=apple&postal_code=${postalCode}&set_distance=${setDistance}`
+          : `/api/search?search=apple`;
+
+        const [vegRes, fruitRes] = await Promise.all([fetch(vegURL), fetch(fruitURL)]);
 
         const vegData = await vegRes.json();
         const fruitData = await fruitRes.json();
 
-        function pickUniqueRetailers(data: any[]): Product[] {
+        function pickUniqueRetailers(data: Product[]): Product[] {
           if (!Array.isArray(data)) return [];
           const seen = new Set<string>();
           const unique: Product[] = [];
@@ -66,11 +80,13 @@ export default function Home() {
     }
 
     fetchData();
-  }, []);
 
+    const token = localStorage.getItem("access_token");
+    if (token) setIsLoggedIn(true);
+  }, [postalCode, setDistance]);
 
   return (
-    <div className="w-9/10 mx-auto 2xl:w-7/10">
+    <div className="w-9/10 mx-auto 3xl:w-8/10">
       <main>
         <div className="mt-10 text-center">
           <h1 className="font-bold text-5xl">
@@ -87,18 +103,25 @@ export default function Home() {
           </h2>
         </div>
 
-        <div className="m-2 text-center hidden">
-          <button className="m-2 p-3 font-bold rounded-full bg-[#D4F6FF]">
-            Sign up for Free
-          </button>
-          <button className="m-2 p-3 min-w-[120px] font-bold rounded-full bg-[#D4F6FF] hidden">
-            Log In
-          </button>
-        </div>
+        {!isLoggedIn && (
+          <div className="m-2 text-center">
+            <Link href="/signup">
+              <button className="m-2 p-3 font-bold rounded-full bg-[#D4F6FF] shadow hover:shadow-md cursor-pointer">
+                Sign up for Free
+              </button>
+            </Link>
+
+            <Link href="/login">
+              <button className="m-2 p-3 min-w-[120px] font-bold rounded-full bg-[#D4F6FF] shadow hover:shadow-md cursor-pointer">
+                Log In
+              </button>
+            </Link>
+          </div>
+        )}
 
         <div>
           <div className="mx-auto my-auto mt-10 mb-10 m-30 p-1 rounded-full content-center border border-zinc-100 inset-shadow-2xs shadow-2xs hover:shadow-md h-10 xl:w-2/3">
-            <SearchBar/>
+            <SearchBar />
           </div>
         </div>
 
@@ -108,14 +131,14 @@ export default function Home() {
           <>
             <section className="mt-10">
               <h3 className="font-semibold text-center xl:text-left text-xl mb-4">Compare Vegetable Prices</h3>
-              <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6 gap-4 ">
+              <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4 ">
                 {vegetables.map((item) => (
                   <div
                     key={`${item.retailer}-${item.product_id}`}
                     className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md min-h-120 xl:h-140 flex flex-col bg-white"
                   >
                     <div className="h-1/2 flex items-center justify-center">
-                      <img
+                      <Image
                         src={item.image_url}
                         alt={item.product_name}
                         width={150}
@@ -124,15 +147,28 @@ export default function Home() {
                       />
                     </div>
                     <div className="h-40/100 flex flex-col justify-between">
-                      <p className="min-h-12 font-semibold text-base">{item.product_name}</p>
+                      <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…": item.product_name}</p>
                       <div>
                         <p className="text-sm text-base">{item.retailer}</p>
-                        <p>{(item.category)}</p>
+                        <p>{item.province}</p>
+                        <p>{item.category}</p>
                       </div>
                       <div>
-                        {item.price_unit === "¢" ? <p className="font-bold">${(item.current_price/100).toFixed(2)} {(item.unit_type)}</p> : <p className="font-bold">${(item.current_price).toFixed(2)} {(item.unit_type)}</p>}
+                        {item.price_unit === "¢" ? (
+                          <p className="font-bold">${(item.current_price / 100).toFixed(2)} {(item.unit_type || "EA").toLowerCase()}</p>
+                        ) : (
+                          <p className="font-bold">${item.current_price.toFixed(2)} {(item.unit_type || "EA").toLowerCase()}</p>
+                        )}
                       </div>
-                      <div><a href = {(item.product_url)} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">View Product</a></div>
+                      <div className="mb-3">
+                        {item.multi_save_qty && item.multi_save_price && (<span className="text-white bg-[#FCB53B] border-none p-0.5 rounded px-2">{item.multi_save_qty} for ${item.multi_save_price}</span>)}
+                        <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2"> Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", {day: "2-digit", month: "short"})}</span>
+                      </div>
+                      <div>
+                        <a href={item.product_url} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">
+                          View Product
+                        </a>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -141,7 +177,7 @@ export default function Home() {
 
             <section className="mt-10">
               <h3 className="font-semibold text-center xl:text-left text-xl mb-4">Compare Fruits Prices</h3>
-              <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 ">
+              <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4 ">
                 {fruits.map((item) => (
                   <div
                     key={`${item.retailer}-${item.product_id}`}
@@ -157,16 +193,28 @@ export default function Home() {
                       />
                     </div>
                     <div className="h-40/100 flex flex-col justify-between">
-                      <p className="min-h-12 font-semibold text-base">{item.product_name}</p>
+                      <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…": item.product_name}</p>
                       <div>
                         <p className="text-sm text-base">{item.retailer}</p>
-                        <p>{(item.province)}</p>
-                        <p>{(item.category)}</p>
+                        <p>{item.province}</p>
+                        <p>{item.category}</p>
                       </div>
                       <div>
-                        {item.price_unit === "¢" ? <p className="font-bold">${(item.current_price/100).toFixed(2)} {(item.unit_type)}</p> : <p className="font-bold">${(item.current_price).toFixed(2)} {(item.unit_type)}</p>}
+                        {item.price_unit === "¢" ? (
+                          <p className="font-bold">${(item.current_price / 100).toFixed(2)} {(item.unit_type || "EA").toLowerCase()}</p>
+                        ) : (
+                          <p className="font-bold">${item.current_price.toFixed(2)} {(item.unit_type || "EA").toLowerCase()}</p>
+                        )}
                       </div>
-                      <div><a href = {(item.product_url)} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">View Product</a></div>
+                      <div className="mb-3">
+                        {item.multi_save_qty && item.multi_save_price && (<span className="text-white bg-[#FCB53B] border-none p-0.5 rounded px-2">{item.multi_save_qty} for ${item.multi_save_price}</span>)}
+                        <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2"> Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", {day: "2-digit", month: "short"})}</span>
+                      </div>
+                      <div>
+                        <a href={item.product_url} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">
+                          View Product
+                        </a>
+                      </div>
                     </div>
                   </div>
                 ))}

@@ -24,7 +24,7 @@ export default function RootLayout({
       <body
         className={inter.className}
       >
-      <div className=" sm:w-9/10 mx-auto 2xl:w-7/10"><Navbar/></div>
+      <div className=" sm:w-9/10 mx-auto 3xl:w-8/10"><Navbar/></div>
       <div className="[@media(min-width:480px)]:hidden w-95/100 m-1 mx-auto"><Postalbar/></div>
       <hr className="border-zinc-300"/>
         {children}

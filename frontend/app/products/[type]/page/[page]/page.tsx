@@ -1,4 +1,5 @@
 import Pagination from "@/components/Pagination";
+import Image from "next/image";
 
 interface Product {
   product_id: string;
@@ -18,46 +19,54 @@ interface Product {
   timestamp: string;
 }
 
-async function getProducts(type: string, page: number) {
-  const res = await fetch(
-    `http://127.0.0.1:8000/province/prices?category=${type}&page=${page}&sort_by=price&sort_order=asc`,
-    { cache: "no-store" }
-  );
+async function getProducts(type: string, page: number, postalCode: string | null) {
+  const baseUrl =
+    `${process.env.BACKEND_URL}/province/prices?category=${type}&page=${page}&sort_by=price&sort_order=asc`;
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch products");
-  }
+  const url = postalCode
+    ? `${baseUrl}&postal_code=${postalCode}`
+    : baseUrl;
 
-  const data = await res.json();
-  return data;
+  const res = await fetch(url, { cache: "no-store" });
+
+  if (!res.ok) throw new Error("Failed to fetch products");
+
+  return res.json();
 }
 
-export default async function ProductsPage({
-  params,
-}: {
-  params: { type: string; page: string };
+export default async function ProductsPage(props: {
+  params: Promise<{ type: string; page: string }>;
+  searchParams: Promise<{ postal_code?: string }>;
 }) {
-  const currentPage = parseInt(params.page, 10) || 1;
-  const data = await getProducts(params.type, currentPage);
+
+  const { type, page } = await props.params;
+  const sp = await props.searchParams;
+
+  const postalCode = sp.postal_code ?? null;
+
+  const currentPage = parseInt(page, 10) || 1;
+
+  const data = await getProducts(type, currentPage, postalCode);
+
   const products: Product[] = data.results;
   const totalPages = data.max_page;
 
   return (
-    <div className="p-6 2xl:w-7/10 mx-auto">
+    <div className="p-6 2xl:w-8/10 mx-auto">
       <h1 className="text-2xl font-bold mb-4">
-        {params.type.charAt(0).toUpperCase() + params.type.slice(1)}
+        {type.charAt(0).toUpperCase() + type.slice(1)}
       </h1>
 
-      <div className="grid [@media(max-width:800px)]:grid-cols-2 grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+      <div className="grid [@media(max-width:800px)]:grid-cols-2 grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 gap-4">
         {products.map((item) => (
           <div
-            key={`${item.retailer}-${item.product_id}=${item.province}`}
+            key={`${item.retailer}-${item.product_id}-${item.province}`}
             className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md h-140 flex flex-col bg-white"
           >
             <div className="h-1/2 flex items-center justify-center">
-              <img
-                src={item.image_url}
-                alt={item.product_name}
+              <Image
+                src={item.image_url && !item.image_url.includes("?v=")? item.image_url: "/no_image.webp"}
+                alt={item.product_name.length > 40 ? item.product_name.slice(0, 40) + "…": item.product_name}
                 width={150}
                 height={150}
                 className="mx-auto object-contain"
@@ -65,20 +74,36 @@ export default async function ProductsPage({
             </div>
 
             <div className="flex flex-col justify-between">
-              <p className="min-h-12 font-semibold text-base">{item.product_name}</p>
+              <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…": item.product_name}</p>
               <p className="text-sm">{item.retailer}</p>
+              <p className="text-sm">{item.province}</p>
               <p>{item.category}</p>
 
               <p className="font-bold">
                 {item.price_unit === "¢"
-                  ? `$${(item.current_price / 100).toFixed(2)} ${item.unit_type}`
-                  : `$${item.current_price.toFixed(2)} ${item.unit_type}`}
+                  ? `$${(item.current_price / 100).toFixed(2)} ${(item.unit_type || "EA").toLowerCase()}`
+                  : `$${item.current_price.toFixed(2)} ${(item.unit_type || "EA").toLowerCase()}`}
               </p>
+
+              <div className="mt-3">
+                {item.multi_save_qty && item.multi_save_price && (
+                  <span className="text-white bg-[#FCB53B] p-0.5 rounded px-2">
+                    {item.multi_save_qty} for ${item.multi_save_price}
+                  </span>
+                )}
+                <span className="text-white bg-[#97B067] mx-2 p-0.5 rounded px-2">
+                  Updated:{" "}
+                  {new Date(item.timestamp).toLocaleDateString("en-CA", {
+                    day: "2-digit",
+                    month: "short",
+                  })}
+                </span>
+              </div>
 
               <a
                 href={item.product_url}
                 target="_blank"
-                className="bg-[#D4F6FF] mt-10 mx-auto p-2 pl-4 pr-4 rounded-full"
+                className="bg-[#D4F6FF] mt-10 mx-auto p-2 px-4 rounded-full"
               >
                 View Product
               </a>
@@ -88,11 +113,7 @@ export default async function ProductsPage({
       </div>
 
       <div className="w-9/10 mx-auto">
-        <Pagination
-          page={currentPage}
-          totalPages={totalPages}
-          type= {params.type}
-        />
+        <Pagination page={currentPage} totalPages={totalPages} type={type} />
       </div>
     </div>
   );

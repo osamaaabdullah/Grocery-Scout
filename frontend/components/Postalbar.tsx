@@ -1,11 +1,42 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { MapPinned, ChevronDown, LocateFixed } from "lucide-react";
 
-export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, distance = "5", setDistance =()=>{} }:any) {
-  const [loadingLocation, setLoadingLocation] = useState(false);
+interface PostalbarProps {
+  postalCode?: string;
+  setPostalCode?: (code: string) => void;
+  distance?: string;
+  setDistance?: (dist: string) => void;
+}
+
+export default function Postalbar({
+  postalCode = "",
+  setPostalCode = () => {},
+  distance,
+  setDistance = () => {},
+}: PostalbarProps) {
   const [open, setOpen] = useState(false);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    const urlPostal = params.get("postal_code");
+    const urlDistance = params.get("set_distance");
+
+    if (urlPostal && !postalCode) setPostalCode(urlPostal);
+    if (urlDistance && !distance) setDistance(urlDistance);
+  }, []);
+
+  const updateURLParams = (postal: string, dist: string) => {
+    const url = new URL(window.location.href);
+
+    if (postal) url.searchParams.set("postal_code", postal);
+    if (dist) url.searchParams.set("set_distance", dist);
+
+    window.history.replaceState(null, "", url.toString());
+  };
 
   const handleUseLocation = () => {
     if (!navigator.geolocation) return alert("Geolocation not supported");
@@ -13,17 +44,23 @@ export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, di
 
     navigator.geolocation.getCurrentPosition(
       async (pos) => {
-        const { latitude, longitude } = pos.coords;
         try {
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?lat=${latitude}&lon=${longitude}&format=json`
+            `https://nominatim.openstreetmap.org/reverse?lat=${pos.coords.latitude}&lon=${pos.coords.longitude}&format=json`
           );
           const data = await res.json();
-          setPostalCode(data.address.postcode || "");
+
+          if (data.address.postcode) {
+            setPostalCode(data.address.postcode);
+            updateURLParams(data.address.postcode, distance || "5");
+          } else {
+            alert("Postal code not found");
+          }
         } catch {
           alert("Unable to detect postal code");
         } finally {
           setLoadingLocation(false);
+          setOpen(false);
         }
       },
       () => {
@@ -32,6 +69,8 @@ export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, di
       }
     );
   };
+
+  const selectedDistance = distance || "5";
 
   return (
     <div className="relative w-full text-left">
@@ -45,9 +84,10 @@ export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, di
         </div>
         <ChevronDown size={16} />
       </button>
+
       {open && (
         <div
-          className="fixed inset-0 bg-black/10 bg-opacity-0 z-40"
+          className="fixed inset-0 bg-black/10 z-40"
           onClick={() => setOpen(false)}
         />
       )}
@@ -55,6 +95,7 @@ export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, di
       {open && (
         <div className="absolute mt-2 w-60 bg-white border border-gray-100 rounded-xl shadow-lg z-50 p-3 [@media(max-width:480px)]:w-full">
           <div className="flex flex-col gap-2">
+
             <div className="mt-3 flex gap-2 items-center">
               <input
                 type="text"
@@ -63,8 +104,12 @@ export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, di
                 onChange={(e) => setPostalCode(e.target.value)}
                 className="border border-gray-200 rounded-full px-3 py-2 w-40 [@media(max-width:480px)]:w-full"
               />
+
               <button
-                onClick={() => setOpen(false)}
+                onClick={() => {
+                  updateURLParams(postalCode, selectedDistance);
+                  setOpen(false);
+                }}
                 className="text-sm font-bold hover:underline m-2 p-2 mx-auto bg-[#D4F6FF] rounded-full"
               >
                 Done
@@ -72,10 +117,7 @@ export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, di
             </div>
 
             <button
-              onClick={() => {
-                handleUseLocation();
-                setOpen(false);
-              }}
+              onClick={handleUseLocation}
               disabled={loadingLocation}
               className="text-left px-3 py-2 rounded-md hover:bg-gray-50 flex items-center gap-2"
             >
@@ -84,13 +126,15 @@ export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, di
             </button>
 
             <div className="flex items-center justify-between px-3 py-2 mt-1 border-t border-gray-100">
-              <label htmlFor="distance" className="text-sm text-gray-600">
-                Distance (km)
-              </label>
+              <label className="text-sm text-gray-600">Distance (km)</label>
               <select
-                id="distance"
-                value={distance}
-                onChange={(e) => setDistance(e.target.value)}
+                value={selectedDistance}
+                onChange={(e) => {
+                  const newDist = e.target.value;
+                  setDistance(newDist);
+                  updateURLParams(postalCode, newDist);
+                  setOpen(false);
+                }}
                 className="border border-gray-200 rounded-md text-sm p-1"
               >
                 <option value="1">1</option>
@@ -99,6 +143,7 @@ export default function Postalbar({ postalCode = "", setPostalCode = () =>{}, di
                 <option value="25">25</option>
               </select>
             </div>
+
           </div>
         </div>
       )}

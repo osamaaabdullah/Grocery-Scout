@@ -4,7 +4,12 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { SearchIcon } from 'lucide-react';
 
-export default function SearchBar({ postalCode, distance}: any) {
+interface SearchBarProps {
+  postalCode?: string;
+  distance?: string;
+}
+
+export default function SearchBar({ postalCode, distance}: SearchBarProps) {
     const [query, setQuery] = useState("");
     const router = useRouter();
 
