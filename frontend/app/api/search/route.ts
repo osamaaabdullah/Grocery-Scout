@@ -6,6 +6,7 @@ export async function GET(req: Request) {
   const query = searchParams.get("search") || "";
   const postal = searchParams.get("postal_code");
   const distance = searchParams.get("set_distance") || "5";
+  const category = searchParams.get("category") || "";
 
   const isNearby = postal && postal !== "null" && postal !== "";
 
@@ -16,11 +17,11 @@ export async function GET(req: Request) {
       query
     )}&postal_code=${encodeURIComponent(
       postal
-    )}&set_distance=${encodeURIComponent(distance)}`;
+    )}&set_distance=${encodeURIComponent(distance)}&category=${encodeURIComponent(category)}`;
   } else {
     apiURL = `${process.env.BACKEND_URL}/province/prices/search?product_name=${encodeURIComponent(
       query
-    )}`;
+    )}&category=${encodeURIComponent(category)}`;
   }
 
   const apiRes = await fetch(apiURL, { cache: "no-store" });
