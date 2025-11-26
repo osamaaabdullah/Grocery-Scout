@@ -167,7 +167,8 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
     main_results = main_query.all()
     
     # ---Related Results---
-    related_query = join_query.filter(ts_vector.op('@@')(ts_query), ~Product.product_name.ilike(f"{search_str}%")).filter(~Product.product_name.ilike(f"{search_str}%"))
+    main_result_product_ids = [results.Product.product_id for results in main_results]
+    related_query = join_query.filter(ts_vector.op('@@')(ts_query), ~Product.product_id.in_(main_result_product_ids))
     if category:
         related_query = related_query.filter(Product.category.ilike(category))
     related_results = related_query.all()
