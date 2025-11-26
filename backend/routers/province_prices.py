@@ -36,11 +36,11 @@ async def search_price_by_product(product_name: str, category: str = None, multi
     return province_price_services.get_product_and_price(db, product_name, category, multi_offer=multi_offer)
 
 @router.get("/prices/search-nearby")
-def search_nearby_products(product_name: str, postal_code: str, set_distance: float = 5, db: Session = Depends(get_db)):
+def search_nearby_products(product_name: str, postal_code: str, set_distance: float = 5, category: str = None, db: Session = Depends(get_db)):
     user_geo = geocode_services.get_geocode_from_postal(postal_code)
     nearest = store_services.get_nearest_stores(db, user_geo["lat"], user_geo["lng"], set_distance)
     province = nearest[0]["store_province"] if nearest else None
-    return province_price_services.get_product_and_price(db, product_name, province=province, nearest_stores=nearest)
+    return province_price_services.get_product_and_price(db, product_name, province=province, nearest_stores=nearest, category=category)
 
 
 @router.delete("/price/{product_id}")
