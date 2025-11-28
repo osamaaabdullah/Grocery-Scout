@@ -1,6 +1,6 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from backend.database import Base, get_db
+from backend.database import Base, get_read_db
 
 SQLALCHEMY_TEST_URL = "sqlite:///:memory:"
 

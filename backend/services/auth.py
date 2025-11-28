@@ -11,7 +11,7 @@ from datetime import datetime, timedelta, timezone
 from typing import Annotated
 from backend.schemas.user import TokenData, PasswordResetEmail
 from backend.models.user import User
-from backend.database import get_db
+from backend.database import get_read_db
 from fastapi_mail import ConnectionConfig, MessageSchema, MessageType
 
 SECRET_KEY = os.getenv("SECRET_KEY")
@@ -46,7 +46,7 @@ def create_access_token(user: User, expires_delta: timedelta | None = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_db)]):
+async def get_current_user(token: Annotated[str, Depends(oauth2_scheme)], db: Annotated[Session, Depends(get_read_db)]):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",

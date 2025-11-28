@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, event
 from sqlalchemy.orm import sessionmaker, Session
 
 from backend.main import app
-from backend.database import Base, get_db
+from backend.database import Base, get_read_db
 from backend.models.store_product import Store, Product, Price
 from backend.models.province_price import ProvincePrice
 from datetime import datetime, UTC
@@ -56,7 +56,7 @@ def client(db_session: Session):
         finally:
             db_session.close()
 
-    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_read_db] = override_get_db
     yield TestClient(app)
     app.dependency_overrides.clear()
 
