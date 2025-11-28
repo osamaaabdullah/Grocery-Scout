@@ -40,12 +40,12 @@ export default function Home() {
         setLoading(true);
 
         const vegURL = postalCode
-          ? `/api/search?search=tomato&postal_code=${postalCode}&set_distance=${setDistance}&category=vegetable`
-          : `/api/search?search=tomato&category=vegetable`;
+          ? `/api/search?search=tomato%20roma&postal_code=${postalCode}&set_distance=${setDistance}&category=vegetable`
+          : `/api/search?search=tomato%20roma&category=vegetable`;
 
         const fruitURL = postalCode
-          ? `/api/search?search=apple&postal_code=${postalCode}&set_distance=${setDistance}&category=fruit`
-          : `/api/search?search=apple&category=fruit`;
+          ? `/api/search?search=apple%20gala&postal_code=${postalCode}&set_distance=${setDistance}&category=fruit`
+          : `/api/search?search=apple%20gala&category=fruit`;
 
         const [vegRes, fruitRes] = await Promise.all([fetch(vegURL), fetch(fruitURL)]);
 
