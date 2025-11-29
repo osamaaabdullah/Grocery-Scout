@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/Navbar";
 import Postalbar from "@/components/Postalbar";
 import { Suspense } from "react";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +38,8 @@ export default function RootLayout({
         <hr className="border-zinc-300" />
 
         {children}
+        <Analytics />
+        <SpeedInsights />
 
         <hr className="border-zinc-300 mt-20 mb-20" />
       </body>
