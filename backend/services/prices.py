@@ -224,7 +224,7 @@ def create_product_price_history(db:Session, data: PriceHistoryCreate) -> PriceH
         PriceHistory: The new or latest PriceHistory record
     """
 
-    latest_price = db.query(PriceHistory).filter(data.product_id == PriceHistory.product_id, data.retailer == PriceHistory.retailer).order_by(PriceHistory.timestamp.desc()).first()
+    latest_price = db.query(PriceHistory).filter(PriceHistory.product_id == data.product_id, PriceHistory.retailer == data.retailer).order_by(PriceHistory.timestamp.desc()).first()
     if latest_price is None or latest_price.current_price != data.current_price:
         price_instance = PriceHistory(**data.model_dump())
         db.add(price_instance)
