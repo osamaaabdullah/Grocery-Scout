@@ -3,11 +3,10 @@ import backend.services.products as product_services
 from fastapi import APIRouter
 from backend.schemas.store_product import ProductCreate
 from backend.models.user import User
-from backend.services.auth import role_required
-from typing import List
+from backend.dependencies.auth import role_required
 from sqlalchemy.orm import Session
 from fastapi import Depends
-from backend.database import get_read_db, get_write_db
+from backend.dependencies.db import get_read_db, get_write_db
 from typing import Annotated
 
 router = APIRouter(tags = ["Products"])
@@ -18,7 +17,7 @@ async def upsert_product(product: ProductCreate, db: Session = Depends(get_write
     return product_services.upsert_product(db, product)
 
 @router.post("/products")
-async def upsert_products(products: List[ProductCreate], db: Session = Depends(get_write_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
+async def upsert_products(products: list[ProductCreate], db: Session = Depends(get_write_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return product_services.upsert_products(db,products)
     
 @router.get("/products")
