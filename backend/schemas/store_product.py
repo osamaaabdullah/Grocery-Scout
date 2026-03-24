@@ -10,8 +10,8 @@ class StoreBase(BaseModel):
     city: Optional[str] = None
     postal_code: Optional[str] = None
     store_province: str
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    latitude: float
+    longitude: float
     
 class StoreCreate(StoreBase):
     pass
@@ -24,10 +24,10 @@ class ProductBase(BaseModel):
     product_id: str
     retailer: str
     product_name: str
-    product_size: Optional[str]
-    category: Optional[str]
-    product_url: Optional[str]
-    image_url: Optional[str]
+    product_size: Optional[str] = None
+    category: Optional[str] = None
+    product_url: Optional[str] = None
+    image_url: Optional[str] = None
     
     
 class ProductCreate(ProductBase):
