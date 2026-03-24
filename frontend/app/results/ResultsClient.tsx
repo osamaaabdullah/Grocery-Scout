@@ -25,7 +25,7 @@ interface Product {
 export default function ResultsClient() {
   const searchParams = useSearchParams();
   const search = searchParams.get("search") || "";
-  const postalCode = searchParams.get("postal_code") || "";
+  const postalCode = searchParams.get("postal_code") || `${process.env.NEXT_PUBLIC_DEFAULT_POSTAL_CODE}`;
   const distance = searchParams.get("set_distance") || "5";
 
   const [results, setResults] = useState<Product[]>([]);

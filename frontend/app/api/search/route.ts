@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 export async function GET(req: Request) {
   const { searchParams } = new URL(req.url);
 
-  const query = searchParams.get("search") || "";
+  const query = searchParams.get("search") || `${process.env.DEFAULT_POSTAL_CODE}`;
   const postal = searchParams.get("postal_code");
   const distance = searchParams.get("set_distance") || "5";
   const category = searchParams.get("category") || "";
