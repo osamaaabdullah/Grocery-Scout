@@ -5,7 +5,6 @@ from datetime import datetime
 
 class UserBase(BaseModel):
     email: EmailStr
-    is_verified: bool
     provider: Optional[str] = None
 
 class UserCreate(BaseModel):
@@ -19,9 +18,11 @@ class UserLogin(BaseModel):
 
 class UserOut(UserBase):
     user_id: int
+    name: str
+    role: str
     created_at: datetime
     updated_at: datetime
-    
+    is_verified: bool
     model_config = ConfigDict(from_attributes = True)
         
 
@@ -42,9 +43,6 @@ class OAuthAccount(OAuthAccountBase):
 class Token(BaseModel):
     access_token: str
     token_type: str
-
-class TokenData(BaseModel):
-    email: EmailStr | None = None
 
 class PasswordResetEmail(BaseModel):
     email: EmailStr
