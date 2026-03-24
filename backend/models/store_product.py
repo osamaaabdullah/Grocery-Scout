@@ -10,9 +10,9 @@ class Store(Base):
     store_name = Column(String, nullable=True)
     city = Column(String, nullable=True)
     postal_code = Column(String, nullable=True) 
-    store_province = Column(String, nullable=True)
-    latitude = Column(Float, nullable=True)
-    longitude = Column(Float, nullable=True)
+    store_province = Column(String, nullable=False)
+    latitude = Column(Float, nullable=False)
+    longitude = Column(Float, nullable=False)
     prices = relationship("Price", back_populates="store")
     price_histories = relationship("PriceHistory", back_populates="store")
     
