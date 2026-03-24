@@ -1,31 +1,18 @@
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
-import os
-from dotenv import load_dotenv
+from sqlalchemy.orm import sessionmaker, DeclarativeBase
+from backend.core.config import get_settings
 
-load_dotenv()
-PRIMARY_DATABASE_URL = os.getenv("DATABASE_URL")
-REPLICA_DATABASE_URL = os.getenv("REPLICA_DB_URL")
-# SQLALCHEMY_DATABASE_URL = os.getenv("LOCAL_DATABASE_URL", os.getenv("DATABASE_URL"))
+settings = get_settings()
 
-write_engine = create_engine(PRIMARY_DATABASE_URL, pool_pre_ping=True)
-read_engine = create_engine(REPLICA_DATABASE_URL, pool_pre_ping=True)
+PRIMARY_DATABASE_URL = settings.database_url
+REPLICA_DATABASE_URL = settings.replica_database_url or settings.database_url
+
+
+write_engine = create_engine(PRIMARY_DATABASE_URL, pool_pre_ping=True, pool_size=2, max_overflow=3, pool_timeout=10)
+read_engine = create_engine(REPLICA_DATABASE_URL, pool_pre_ping=True, pool_size=2, max_overflow=3, pool_timeout=10)
 
 SessionLocalWrite = sessionmaker(autocommit = False, autoflush=False,bind=write_engine)
 SessionLocalRead = sessionmaker(autocommit = False, autoflush=False,bind=read_engine)
 
-Base = declarative_base()
-
-def get_write_db():
-    db = SessionLocalWrite()
-    try:
-        yield db
-    finally:
-        db.close()
-
-def get_read_db():
-    db = SessionLocalRead()
-    try:
-        yield db
-    finally:
-        db.close()
+class Base(DeclarativeBase):
+    pass
