@@ -1,37 +1,11 @@
 from sqlalchemy.orm import Session
-from backend.schemas.province_price import ProvincePriceCreate, ProvincePrice
+from backend.schemas.province_price import ProvincePriceCreate
 from backend.models.province_price import ProvincePrice
 from backend.models.store_product import Product
 from sqlalchemy.dialects.postgresql import insert, Insert
 from sqlalchemy import asc, desc, func
 from math import ceil
-
-def postal_to_province(postal: str):
-    """Helper function to convert postal code to province
-
-    Args:
-        postal (str): postal code
-
-    Returns:
-        _type_: Province Code
-    """
-    if not postal:
-        return None
-    mapping = {
-        "A": "NL",
-        "B": "NS",
-        "C": "PE",
-        "E": "NB",
-        "G": "QC", "H": "QC", "J": "QC",
-        "K": "ON", "L": "ON", "M": "ON", "N": "ON", "P": "ON",
-        "R": "MB",
-        "S": "SK",
-        "T": "AB",
-        "V": "BC",
-        "X": "NT",
-        "Y": "YT",
-    }
-    return mapping.get(postal[0].upper())
+from backend.services.geocode import postal_to_province
 
 def upsert_price_fields(province_price_instace: Insert) -> dict:
     """Helper function that defines the fields to update when a price conflict occurs during an upsert. 
@@ -243,7 +217,7 @@ def get_all_products_and_prices(db:Session, category: str | None = None, retaile
         query = query.order_by(desc(ProvincePrice.current_price))
     if sort_by == "product" and sort_order =="asc":
         query = query.order_by(asc(Product.product_name))
-    if sort_by == "price" and sort_order =="desc":
+    if sort_by == "product" and sort_order =="desc":
         query = query.order_by(desc(Product.product_name))
     if multi_offer:
         query = query.filter(ProvincePrice.multi_save_qty.isnot(None))
