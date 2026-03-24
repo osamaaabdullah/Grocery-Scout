@@ -1,23 +1,19 @@
 from sqlalchemy.orm import Session
 from backend.models.user import User
 from backend.schemas.user import UserCreate, UserOut
-from fastapi import HTTPException
-from backend.services.utils import get_password_hash, password_strength
+from backend.core.security import password_strength, get_password_hash
+from backend.core.exceptions import UserAlreadyExistsError, UserNotFoundError
 
 
-def create_user(db: Session, user: UserCreate) ->UserOut:
+def create_user(db: Session, user: UserCreate) -> User:
     if db.query(User).filter(User.email == user.email).first():
-        raise HTTPException(
-            status_code=400,
-            detail="Email already exists"
-        )
-    password_strength(user.password)
+        raise UserAlreadyExistsError(user.email)
     hashed_password = get_password_hash(user.password)
-    user = User(email = user.email, hashed_password = hashed_password, name = user.name)
-    db.add(user)
+    new_user = User(email = user.email, hashed_password = hashed_password, name = user.name)
+    db.add(new_user)
     db.commit()
-    db.refresh(user)
-    return UserOut.model_validate(user)
+    db.refresh(new_user)
+    return new_user
 
 def get_user_by_email(db: Session, email: str) -> User | None:
     return db.query(User).filter(User.email == email).first()
@@ -25,10 +21,7 @@ def get_user_by_email(db: Session, email: str) -> User | None:
 def delete_user(db: Session, email:str) -> dict:
     user = db.query(User).filter(User.email == email).first()
     if not user:
-        raise HTTPException(
-            status_code=404,
-            detail= 'User not found'
-        )
+        raise UserNotFoundError(email)
     db.delete(user)
     db.commit()
     return {
