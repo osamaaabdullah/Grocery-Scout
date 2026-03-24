@@ -8,8 +8,8 @@ class ProvincePriceBase(BaseModel):
     province: str
     current_price: float
     regular_price: float
-    price_unit: str
-    unit_type: Optional[str] = None
+    price_unit: Optional[str] = None
+    unit_type : Optional[str] = None
     unit_price_kg: Optional[str] = None
     unit_price_lb: Optional[str] = None
     multi_save_qty: Optional[int] = None
