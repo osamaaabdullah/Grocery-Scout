@@ -44,7 +44,7 @@ async def get_product_price(product_id: str, retailer: str = None, db: Session =
 async def delete_price(product_id: str, db: Session = Depends(get_write_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return price_services.delete_price(db,product_id)
 
-@router.post("/price/history/")
+@router.post("/price/history")
 async def create_product_histories(data: list[PriceHistoryCreate], db: Session = Depends(get_write_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return price_services.bulk_insert_product_price_history(db,data)
 
