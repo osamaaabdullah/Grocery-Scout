@@ -18,7 +18,7 @@ async def create_user(user: UserCreate, db: Session = Depends(get_write_db)):
     return new_user
 
 
-@router.post("/verify/{token}")
+@router.get("/verify/{token}")
 async def verify_user(token: str, db: Session = Depends(get_write_db)):
     return auth_services.authenticate_user_for_verification(db, token)
 
