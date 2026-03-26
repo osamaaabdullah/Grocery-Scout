@@ -6,6 +6,7 @@ from sqlalchemy.dialects.postgresql import insert, Insert
 from sqlalchemy import asc, desc, func
 from math import ceil
 from backend.services.geocode import postal_to_province
+from datetime import date
 
 def upsert_price_fields(province_price_instace: Insert) -> dict:
     """Helper function that defines the fields to update when a price conflict occurs during an upsert. 
@@ -24,6 +25,20 @@ def upsert_price_fields(province_price_instace: Insert) -> dict:
             'timestamp': province_price_instace.excluded.timestamp
         }
 
+def is_updated_today(db: Session, product_id: str, province:str, retailer: str | None) -> bool:
+    """_summary_
+
+    Args:
+        db (Session): _description_
+        product_id (str): _description_
+        province (str): _description_
+
+    Returns:
+        bool: _description_
+    """
+    record = db.query(ProvincePrice).filter(ProvincePrice.product_id == product_id, ProvincePrice.province == province).first()
+    return record.timestamp.date() == date.today()
+
 def upsert_price(db: Session, data: ProvincePriceCreate) -> ProvincePrice:
     """Insert or update a price record in the database.
 
@@ -34,12 +49,12 @@ def upsert_price(db: Session, data: ProvincePriceCreate) -> ProvincePrice:
     Returns:
         ProvincePrice: The updated or newly created ProvincePrice instance.
     """
-    province_price_instace = insert(ProvincePrice).values(**data.model_dump())
-    province_price_instace = province_price_instace.on_conflict_do_update(
+    province_price_instance = insert(ProvincePrice).values(**data.model_dump())
+    province_price_instance = province_price_instance.on_conflict_do_update(
         index_elements= ['product_id', 'retailer', 'province'],
-        set_= upsert_price_fields(province_price_instace)
+        set_= upsert_price_fields(province_price_instance)
     )
-    db.execute(province_price_instace)
+    db.execute(province_price_instance)
     db.commit()
     return db.query(ProvincePrice).filter_by(product_id = data.product_id, retailer = data.retailer, province = data.province).first()
 
@@ -104,7 +119,7 @@ def delete_price(db:Session, product_id: str) -> dict:
     db.commit()
     return {"deleted_entries": price}
 
-def get_product_and_price(db:Session, search_str: str, category: str | None = None, province: str = "ON", nearest_stores: list[dict] | None = None, multi_offer: bool = False) -> dict:
+def get_product_and_price(db:Session, search_str: str, category: str | None = None, province: str = "ON", nearest_stores: list[dict] | None = None, multi_offer: bool = False, page: int = 1, limit: int = 20) -> dict:
     """Fetch products and their prices matching a search string.
 
     Args:
@@ -138,16 +153,26 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
     main_query = join_query.filter(ts_vector.op('@@')(ts_query))
     if category:
         main_query = main_query.filter(Product.category.ilike(f"%{category}%"))
-    main_results = main_query.all()
+    main_results_count = main_query.count()
+    main_results = main_query.offset((page-1)*limit).limit(limit).all()
     
     # ---Related Results---
     main_result_product_ids = [results.Product.product_id for results in main_results]
     related_query = join_query.filter(ts_vector.op('@@')(ts_query), ~Product.product_id.in_(main_result_product_ids))
     if category:
         related_query = related_query.filter(Product.category.ilike(f"%{category}%"))
-    related_results = related_query.all()
+    related_results_count = related_query.count()
+    related_results = related_query.offset((page-1)*limit).limit(limit).all()
+    
     
     return {
+        "pagination": {
+            "page": page,
+            "main_results_count": main_results_count,
+            "related_results_count": related_results_count,
+            "main_results_total_page": ceil(main_results_count/limit) if limit > 0 else 1,
+            "related_results_total_page": ceil(related_results_count/limit) if limit > 0 else 1
+        },
         "main_results":
                 [
                     {
@@ -163,6 +188,8 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                         "regular_price": province_price.regular_price,
                         "price_unit": province_price.price_unit,
                         "unit_type": province_price.unit_type,
+                        "unit_price_kg": province_price.unit_price_kg,
+                        "unit_price_lb": province_price.unit_price_lb,
                         "multi_save_qty": province_price.multi_save_qty,
                         "multi_save_price": province_price.multi_save_price,
                         "timestamp": province_price.timestamp
@@ -183,6 +210,8 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                         "regular_price": province_price.regular_price,
                         "price_unit": province_price.price_unit,
                         "unit_type": province_price.unit_type,
+                        "unit_price_kg": province_price.unit_price_kg,
+                        "unit_price_lb": province_price.unit_price_lb,
                         "multi_save_qty": province_price.multi_save_qty,
                         "multi_save_price": province_price.multi_save_price,
                         "timestamp": province_price.timestamp
@@ -243,6 +272,8 @@ def get_all_products_and_prices(db:Session, category: str | None = None, retaile
                                 "regular_price": province_price.regular_price,
                                 "price_unit": province_price.price_unit,
                                 "unit_type": province_price.unit_type,
+                                "unit_price_kg": province_price.unit_price_kg,
+                                "unit_price_lb": province_price.unit_price_lb,  
                                 "multi_save_qty": province_price.multi_save_qty,
                                 "multi_save_price": province_price.multi_save_price,
                                 "timestamp": province_price.timestamp
