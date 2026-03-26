@@ -2,7 +2,9 @@ from backend.models.store_product import Product, Price, PriceHistory
 from backend.schemas.store_product import PriceCreate, PriceHistoryCreate
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert, Insert
-from sqlalchemy import func
+from sqlalchemy import func, tuple_, asc, desc
+from datetime import date
+from math import ceil
 
 def upsert_price_fields(price_instance: Insert) -> dict:
     """Helper function that defines the fields to update when a price conflict occurs during an upsert. 
@@ -21,6 +23,20 @@ def upsert_price_fields(price_instance: Insert) -> dict:
             'multi_save_price': price_instance.excluded.multi_save_price, 
             'timestamp': price_instance.excluded.timestamp
         }
+
+def is_updated_today(db: Session, product_id: str, province:str, retailer: str | None) -> bool:
+    """_summary_
+
+    Args:
+        db (Session): _description_
+        product_id (str): _description_
+        province (str): _description_
+
+    Returns:
+        bool: _description_
+    """
+    record = db.query(Price).filter(Price.product_id == product_id, Price.province == province).first()
+    return record.timestamp.date() == date.today()
 
 def upsert_price(db:Session, data: PriceCreate) -> Price:
     """Insert or update a price record in the database.
@@ -100,7 +116,7 @@ def delete_price(db:Session, product_id: str) -> dict:
     db.commit()
     return {"deleted_entries": price}
 
-def get_product_and_price(db:Session, search_str: str, category: str | None = None) -> dict:
+def get_product_and_price(db:Session, search_str: str, category: str | None = None, nearest_stores: list[dict] | None = None, multi_offer: bool = False, page: int = 1, limit: int =20) -> dict:
     """Fetch products and their prices matching a search string.
 
     Args:
@@ -119,32 +135,62 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
     search_str = search_str.strip()
     category = category.strip() if category else None
     
+    if nearest_stores:
+        nearest_retailers = [(store["retailer"], store["store_id"]) for store in nearest_stores]
+        join_query = join_query.filter(tuple_(Product.retailer, Price.store_id).in_(nearest_retailers))
+    
+    ts_vector = func.to_tsvector('english', Product.product_name)
+    ts_query  = func.plainto_tsquery('english', search_str)
+    
+    if multi_offer:
+        join_query = join_query.filter(Price.multi_save_qty.isnot(None))
+    
     # ---Main Results---
-    main_query = join_query.filter(Product.product_name.ilike(f"{search_str}"))
+    main_query = join_query.filter(ts_vector.op('@@')(ts_query))
     if category:
-        main_query = main_query.filter(Product.category.ilike(category))
-    main_results = main_query.all()
+        main_query = main_query.filter(Product.category.ilike(f"%{category}%"))
+    main_results_count = main_query.count()
+    main_results = main_query.offset((page-1)*limit).limit(limit).all()
     
     # ---Related Results---
-    related_query = join_query.filter(Product.product_name.ilike(f"%{search_str}%")).filter(~Product.product_name.ilike(search_str))
+    main_results_product_ids = [results.Product.product_id for results in main_results]
+    related_query = join_query.filter(ts_vector.op('@@')(ts_query), ~Product.product_id.in_(main_results_product_ids))
     if category:
-        related_query = related_query.filter(Product.category.ilike(category))
-    related_results = related_query.all()
+        related_query = related_query.filter(Product.category.ilike(f"%{category}%"))
+    related_results_count = related_query.count()
+    related_results = related_query.offset((page-1)*limit).limit(limit).all()
+    
+    # for product in main_results:
+    #     if not is_updated_today(db, product.product_id, product.province):
+    #         scrape_price.delay(product.url, product.store_id)
     
     return {
+        "pagination": {
+            "page": page,
+            "main_results_count": main_results_count,
+            "related_results_count": related_results_count,
+            "main_results_total_page": ceil(main_results_count/limit) if limit > 0 else 1,
+            "related_results_total_page": ceil(related_results_count/limit) if limit > 0 else 1
+        },
         "main_results":
                 [
                     {
                         "product_id": product.product_id,
                         "retailer": product.retailer,
+                        "store_id": price.store_id,
                         "product_name": product.product_name,
                         "product_size": product.product_size,
                         "category": product.category,
                         "product_url": product.product_url,
                         "image_url": product.image_url,
-                        "store_id": price.store_id,
                         "current_price": price.current_price,
                         "regular_price": price.regular_price,
+                        "price_unit": price.price_unit,
+                        "unit_type": price.unit_type,
+                        "unit_price_kg": price.unit_price_kg,
+                        "unit_price_lb": price.unit_price_lb,
+                        "multi_save_qty": price.multi_save_qty,
+                        "multi_save_price": price.multi_save_price,
                         "timestamp": price.timestamp
                     } for product, price in main_results
                 ],
@@ -153,20 +199,26 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
                     {
                         "product_id": product.product_id,
                         "retailer": product.retailer,
+                        "store_id": price.store_id,
                         "product_name": product.product_name,
                         "product_size": product.product_size,
                         "category": product.category,
                         "product_url": product.product_url,
                         "image_url": product.image_url,
-                        "store_id": price.store_id,
                         "current_price": price.current_price,
                         "regular_price": price.regular_price,
+                        "price_unit": price.price_unit,
+                        "unit_type": price.unit_type,
+                        "unit_price_kg": price.unit_price_kg,
+                        "unit_price_lb": price.unit_price_lb,
+                        "multi_save_qty": price.multi_save_qty,
+                        "multi_save_price": price.multi_save_price,
                         "timestamp": price.timestamp
                     } for product, price in related_results
                 ]
     }
 
-def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None) -> list[dict]:
+def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None, nearest_stores: list[dict] | None = None, page: int = 1, limit: int=20, sort_by: str = None, sort_order: str = None, multi_offer: bool = False) -> list[dict]:
     """Fetch all products and their prices
 
     Args:
@@ -179,23 +231,49 @@ def get_all_products_and_prices(db:Session, category: str | None = None, retaile
     """
     
     query = db.query(Product,Price).join(Price, (Product.product_id == Price.product_id) & (Product.retailer == Price.retailer))
+    
+    if nearest_stores:
+        nearest_retailers = [(store["retailer"], store["store_id"]) for store in nearest_stores]
+        query = query.filter(filter(tuple_(Product.retailer, Price.store_id).in_(nearest_retailers)))
     if category:
         query = query.filter(Product.category.ilike(f"%{category.strip()}%"))
     if retailer:
         query = query.filter(Product.retailer.ilike(retailer.strip()))
+    if sort_by == "price" and sort_order =="asc":
+        query = query.order_by(asc(Price.current_price))
+    if sort_by == "price" and sort_order =="desc":
+        query = query.order_by(desc(Price.current_price))
+    if sort_by == "product" and sort_order =="asc":
+        query = query.order_by(asc(Product.product_name))
+    if sort_by == "product" and sort_order =="desc":
+        query = query.order_by(desc(Product.product_name))
+    if multi_offer:
+        query = query.filter(Price.multi_save_qty.isnot(None))
     results = query.all()
+    
+    total_items = query.count()
+    max_pages = ceil(total_items/limit) if limit >0 else 1
+    query = query.offset((page-1)*limit).limit(limit)
+    results = query.all()
+    
     return [
         {
             "product_id": product.product_id,
             "retailer": product.retailer,
+            "store_id": price.store_id,
             "product_name": product.product_name,
             "product_size": product.product_size,
             "category": product.category,
             "product_url": product.product_url,
             "image_url": product.image_url,
-            "store_id": price.store_id,
             "current_price": price.current_price,
             "regular_price": price.regular_price,
+            "price_unit": price.price_unit,
+            "unit_type": price.unit_type,
+            "unit_price_kg": price.unit_price_kg,
+            "unit_price_lb": price.unit_price_lb,
+            "multi_save_qty": price.multi_save_qty,
+            "multi_save_price": price.multi_save_price,
             "timestamp": price.timestamp
         } for product, price in results
     ]
