@@ -43,6 +43,10 @@ class PriceBase(BaseModel):
     store_id: int
     current_price: float
     regular_price: float
+    price_unit: Optional[str] = None
+    unit_type : Optional[str] = None
+    unit_price_kg: Optional[str] = None
+    unit_price_lb: Optional[str] = None
     multi_save_qty: Optional[int] = None
     multi_save_price: Optional[float] = None
     timestamp: Optional[datetime] = None
