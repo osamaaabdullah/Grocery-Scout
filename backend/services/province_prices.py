@@ -8,35 +8,41 @@ from math import ceil
 from backend.services.geocode import postal_to_province
 from datetime import date
 
-def upsert_price_fields(province_price_instace: Insert) -> dict:
+def upsert_price_fields(province_price_instance: Insert) -> dict:
     """Helper function that defines the fields to update when a price conflict occurs during an upsert. 
 
     Args:
-        province_price_instace (Insert): A SQLAlchemy PostgreSQL INSERT statement object. 
+        province_price_instance (Insert): A SQLAlchemy PostgreSQL INSERT statement object. 
 
     Returns:
         dict: A dictionary of values that needs to be updated.
     """
     return {
-            'current_price': province_price_instace.excluded.current_price,
-            'regular_price': province_price_instace.excluded.regular_price,
-            'multi_save_qty': province_price_instace.excluded.multi_save_qty,
-            'multi_save_price': province_price_instace.excluded.multi_save_price, 
-            'timestamp': province_price_instace.excluded.timestamp
+            'current_price': province_price_instance.excluded.current_price,
+            'regular_price': province_price_instance.excluded.regular_price,
+            'price_unit': province_price_instance.excluded.price_unit,
+            'unit_type': province_price_instance.excluded.unit_type,
+            'unit_price_kg': province_price_instance.excluded.unit_price_kg, 
+            'unit_price_lb': province_price_instance.excluded.unit_price_lb,
+            'multi_save_qty': province_price_instance.excluded.multi_save_qty,
+            'multi_save_price': province_price_instance.excluded.multi_save_price, 
+            'timestamp': province_price_instance.excluded.timestamp
         }
 
 def is_updated_today(db: Session, product_id: str, province:str, retailer: str | None) -> bool:
-    """_summary_
+    """Checks if a product has been updated based on today's date
 
     Args:
-        db (Session): _description_
-        product_id (str): _description_
-        province (str): _description_
+        db (Session): SQLALchemy database session.
+        product_id (str): Identifier for the product.
+        province (str): Province acronym
 
     Returns:
-        bool: _description_
+        bool: True if product information is updated today, False otherwise.
     """
     record = db.query(ProvincePrice).filter(ProvincePrice.product_id == product_id, ProvincePrice.province == province).first()
+    if not record:
+        return False
     return record.timestamp.date() == date.today()
 
 def upsert_price(db: Session, data: ProvincePriceCreate) -> ProvincePrice:
