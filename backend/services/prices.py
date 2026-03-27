@@ -19,23 +19,29 @@ def upsert_price_fields(price_instance: Insert) -> dict:
     return {
             'current_price': price_instance.excluded.current_price,
             'regular_price': price_instance.excluded.regular_price,
+            'price_unit': price_instance.excluded.price_unit,
+            'unit_type': price_instance.excluded.unit_type,
+            'unit_price_kg': price_instance.excluded.unit_price_kg, 
+            'unit_price_lb': price_instance.excluded.unit_price_lb,
             'multi_save_qty': price_instance.excluded.multi_save_qty,
             'multi_save_price': price_instance.excluded.multi_save_price, 
             'timestamp': price_instance.excluded.timestamp
         }
 
-def is_updated_today(db: Session, product_id: str, province:str, retailer: str | None) -> bool:
-    """_summary_
+def is_updated_today(db: Session, product_id: str, store_id: str, retailer: str | None) -> bool:
+    """Checks if a product has been updated based on today's date
 
     Args:
-        db (Session): _description_
-        product_id (str): _description_
-        province (str): _description_
+        db (Session): SQLALchemy database session.
+        product_id (str): Identifier for the product.
+        province (str): Province acronym
 
     Returns:
-        bool: _description_
+        bool: True if product information is updated today, False otherwise.
     """
-    record = db.query(Price).filter(Price.product_id == product_id, Price.province == province).first()
+    record = db.query(Price).filter(Price.product_id == product_id, Price.store_id == store_id).first()
+    if not record:
+        return False
     return record.timestamp.date() == date.today()
 
 def upsert_price(db:Session, data: PriceCreate) -> Price:
@@ -116,7 +122,7 @@ def delete_price(db:Session, product_id: str) -> dict:
     db.commit()
     return {"deleted_entries": price}
 
-def get_product_and_price(db:Session, search_str: str, category: str | None = None, nearest_stores: list[dict] | None = None, multi_offer: bool = False, page: int = 1, limit: int =20) -> dict:
+def get_product_and_price(db:Session, search_str: str, nearest_stores: list[dict], category: str | None = None,  multi_offer: bool = False, page: int = 1, limit: int =20) -> dict:
     """Fetch products and their prices matching a search string.
 
     Args:
@@ -135,9 +141,9 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
     search_str = search_str.strip()
     category = category.strip() if category else None
     
-    if nearest_stores:
-        nearest_retailers = [(store["retailer"], store["store_id"]) for store in nearest_stores]
-        join_query = join_query.filter(tuple_(Product.retailer, Price.store_id).in_(nearest_retailers))
+    
+    nearest_retailers = [(store["retailer"], store["store_id"]) for store in nearest_stores]
+    join_query = join_query.filter(tuple_(Product.retailer, Price.store_id).in_(nearest_retailers))
     
     ts_vector = func.to_tsvector('english', Product.product_name)
     ts_query  = func.plainto_tsquery('english', search_str)
@@ -160,9 +166,6 @@ def get_product_and_price(db:Session, search_str: str, category: str | None = No
     related_results_count = related_query.count()
     related_results = related_query.offset((page-1)*limit).limit(limit).all()
     
-    # for product in main_results:
-    #     if not is_updated_today(db, product.product_id, product.province):
-    #         scrape_price.delay(product.url, product.store_id)
     
     return {
         "pagination": {
