@@ -129,7 +129,7 @@ def search_products_with_live_prices(db: Session, search_str: str, nearest_store
 
     # Start Celery Task
     for (retailer, store_id, postal_code, city, province), product_url in scrape_needed.items():
-        if retailer == 'Walmart':
+        if retailer != 'Metro' or retailer != 'Food Basics':
             _trigger_scrape(retailer=retailer, store_id=str(store_id), postal_code=postal_code, city=city, province=province, product_urls=product_url)
     
     return {
