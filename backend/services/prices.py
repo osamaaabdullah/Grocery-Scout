@@ -3,7 +3,6 @@ from backend.schemas.store_product import PriceCreate, PriceHistoryCreate
 from sqlalchemy.orm import Session
 from sqlalchemy.dialects.postgresql import insert, Insert
 from sqlalchemy import func, tuple_, asc, desc
-from datetime import date
 from math import ceil
 
 def upsert_price_fields(price_instance: Insert) -> dict:
@@ -28,21 +27,6 @@ def upsert_price_fields(price_instance: Insert) -> dict:
             'timestamp': price_instance.excluded.timestamp
         }
 
-def is_updated_today(db: Session, product_id: str, store_id: str, retailer: str | None) -> bool:
-    """Checks if a product has been updated based on today's date
-
-    Args:
-        db (Session): SQLALchemy database session.
-        product_id (str): Identifier for the product.
-        province (str): Province acronym
-
-    Returns:
-        bool: True if product information is updated today, False otherwise.
-    """
-    record = db.query(Price).filter(Price.product_id == product_id, Price.store_id == store_id).first()
-    if not record:
-        return False
-    return record.timestamp.date() == date.today()
 
 def upsert_price(db:Session, data: PriceCreate) -> Price:
     """Insert or update a price record in the database.
