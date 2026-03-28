@@ -6,7 +6,6 @@ from sqlalchemy.dialects.postgresql import insert, Insert
 from sqlalchemy import asc, desc, func
 from math import ceil
 from backend.services.geocode import postal_to_province
-from datetime import date
 
 def upsert_price_fields(province_price_instance: Insert) -> dict:
     """Helper function that defines the fields to update when a price conflict occurs during an upsert. 
@@ -28,22 +27,6 @@ def upsert_price_fields(province_price_instance: Insert) -> dict:
             'multi_save_price': province_price_instance.excluded.multi_save_price, 
             'timestamp': province_price_instance.excluded.timestamp
         }
-
-def is_updated_today(db: Session, product_id: str, province:str, retailer: str | None) -> bool:
-    """Checks if a product has been updated based on today's date
-
-    Args:
-        db (Session): SQLALchemy database session.
-        product_id (str): Identifier for the product.
-        province (str): Province acronym
-
-    Returns:
-        bool: True if product information is updated today, False otherwise.
-    """
-    record = db.query(ProvincePrice).filter(ProvincePrice.product_id == product_id, ProvincePrice.province == province).first()
-    if not record:
-        return False
-    return record.timestamp.date() == date.today()
 
 def upsert_price(db: Session, data: ProvincePriceCreate) -> ProvincePrice:
     """Insert or update a price record in the database.
@@ -125,105 +108,6 @@ def delete_price(db:Session, product_id: str) -> dict:
     db.commit()
     return {"deleted_entries": price}
 
-def get_product_and_price(db:Session, search_str: str, category: str | None = None, province: str = "ON", nearest_stores: list[dict] | None = None, multi_offer: bool = False, page: int = 1, limit: int = 20) -> dict:
-    """Fetch products and their prices matching a search string.
-
-    Args:
-        db (Session): SQLAlchemy database session.
-        search_str (str): The product name to search for (case-insensitive).
-        category (str | None, optional): Optional category filter. Defaults to None.
-
-    Returns:
-        dict: {
-            "main_results": list of exact matches for the search string,
-            "related_results": list of partial matches containing the search string
-        }
-    """
-    join_query = db.query(Product,ProvincePrice).join(ProvincePrice, (Product.product_id == ProvincePrice.product_id) & (Product.retailer == ProvincePrice.retailer))
-    search_str = search_str.strip()
-    category = category.strip() if category else None
-    
-    if nearest_stores:
-        nearest_retailers = [store["retailer"] for store in nearest_stores]
-        join_query = join_query.filter(Product.retailer.in_(nearest_retailers), ProvincePrice.province == province)
-    else:
-        join_query = join_query.filter(ProvincePrice.province == province)
-
-    ts_vector = func.to_tsvector('english', Product.product_name)
-    ts_query  = func.plainto_tsquery('english', search_str)
-
-    if multi_offer:
-        join_query = join_query.filter(ProvincePrice.multi_save_qty.isnot(None))
-
-    # ---Main Results---
-    main_query = join_query.filter(ts_vector.op('@@')(ts_query))
-    if category:
-        main_query = main_query.filter(Product.category.ilike(f"%{category}%"))
-    main_results_count = main_query.count()
-    main_results = main_query.offset((page-1)*limit).limit(limit).all()
-    
-    # ---Related Results---
-    main_result_product_ids = [results.Product.product_id for results in main_results]
-    related_query = join_query.filter(ts_vector.op('@@')(ts_query), ~Product.product_id.in_(main_result_product_ids))
-    if category:
-        related_query = related_query.filter(Product.category.ilike(f"%{category}%"))
-    related_results_count = related_query.count()
-    related_results = related_query.offset((page-1)*limit).limit(limit).all()
-    
-    
-    return {
-        "pagination": {
-            "page": page,
-            "main_results_count": main_results_count,
-            "related_results_count": related_results_count,
-            "main_results_total_page": ceil(main_results_count/limit) if limit > 0 else 1,
-            "related_results_total_page": ceil(related_results_count/limit) if limit > 0 else 1
-        },
-        "main_results":
-                [
-                    {
-                        "product_id": product.product_id,
-                        "retailer": product.retailer,
-                        "province": province_price.province,
-                        "product_name": product.product_name,
-                        "product_size": product.product_size,
-                        "category": product.category,
-                        "product_url": product.product_url,
-                        "image_url": product.image_url,
-                        "current_price": province_price.current_price,
-                        "regular_price": province_price.regular_price,
-                        "price_unit": province_price.price_unit,
-                        "unit_type": province_price.unit_type,
-                        "unit_price_kg": province_price.unit_price_kg,
-                        "unit_price_lb": province_price.unit_price_lb,
-                        "multi_save_qty": province_price.multi_save_qty,
-                        "multi_save_price": province_price.multi_save_price,
-                        "timestamp": province_price.timestamp
-                    } for product, province_price in main_results
-                ],
-        "related_results":
-                [
-                    {
-                        "product_id": product.product_id,
-                        "retailer": product.retailer,
-                        "province": province_price.province,
-                        "product_name": product.product_name,
-                        "product_size": product.product_size,
-                        "category": product.category,
-                        "product_url": product.product_url,
-                        "image_url": product.image_url,
-                        "current_price": province_price.current_price,
-                        "regular_price": province_price.regular_price,
-                        "price_unit": province_price.price_unit,
-                        "unit_type": province_price.unit_type,
-                        "unit_price_kg": province_price.unit_price_kg,
-                        "unit_price_lb": province_price.unit_price_lb,
-                        "multi_save_qty": province_price.multi_save_qty,
-                        "multi_save_price": province_price.multi_save_price,
-                        "timestamp": province_price.timestamp
-                    } for product, province_price in related_results
-                ]
-    }
 
 def get_all_products_and_prices(db:Session, category: str | None = None, retailer: str | None = None, postal_code: str | None = None, province: str = "ON", page: int = 1, limit: int = 20, sort_by: str = None, sort_order: str = None, multi_offer: bool = False) -> list[dict]:
     """Fetch all products and their prices
