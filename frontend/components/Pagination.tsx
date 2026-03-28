@@ -2,12 +2,14 @@
 
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 
-interface Pagination {
+interface PaginationProps {
   page: number;
   totalPages: number;
-  type: string;
+  type?: string;
+  search?: string;
+  postalCode?: string;
+  distance?: string;
 }
 
 function buildPages(current: number, total: number): Array<number | "dots"> {
@@ -30,19 +32,26 @@ function buildPages(current: number, total: number): Array<number | "dots"> {
   return pages;
 }
 
-export default function Pagination({ page, totalPages, type }: Pagination) {
+export default function Pagination({ page, totalPages, type, search, postalCode, distance }: PaginationProps) {
   const pages = buildPages(page, totalPages);
 
-  const searchParams = useSearchParams();
-  const postalCode = searchParams.get("postal_code");
+  const buildHref = (p: number) => {
+    if (type) {
+      // Products mode
+      return postalCode
+        ? `/products/${type}/page/${p}?postal_code=${postalCode}`
+        : `/products/${type}/page/${p}`;
+    }
+    // Search results mode
+    const params = new URLSearchParams();
+    if (search) params.set("search", search);
+    if (postalCode) params.set("postal_code", postalCode);
+    if (distance) params.set("set_distance", distance);
+    params.set("page", String(p));
+    return `/results?${params.toString()}`;
+  };
 
-  const withPostal = (p: number) =>
-    postalCode
-      ? `/products/${type}/page/${p}?postal_code=${postalCode}`
-      : `/products/${type}/page/${p}`;
-
-  const baseItem =
-    "h-15 w-15 inline-flex items-center rounded-full px-3 py-2 justify-center text-sm transition";
+  const baseItem = "h-15 w-15 inline-flex items-center rounded-full px-3 py-2 justify-center text-sm transition";
   const idle = "hover:bg-gray-50";
   const selected = "text-black border-3 border-[#D4F6FF]";
   const muted = "opacity-50 cursor-not-allowed";
@@ -50,11 +59,9 @@ export default function Pagination({ page, totalPages, type }: Pagination) {
   return (
     <nav className="mt-8 flex justify-center" aria-label="Pagination">
       <ul className="flex items-center gap-3">
-        
-        {/* PREVIOUS BUTTON */}
         <li>
           {page > 1 ? (
-            <Link href={withPostal(page - 1)} rel="prev" className={`${baseItem} ${idle}`}>
+            <Link href={buildHref(page - 1)} rel="prev" className={`${baseItem} ${idle}`}>
               <ChevronLeft className="size-10" />
             </Link>
           ) : (
@@ -64,7 +71,6 @@ export default function Pagination({ page, totalPages, type }: Pagination) {
           )}
         </li>
 
-        {/* NUMBERED PAGES */}
         {pages.map((p, i) => (
           <li key={`${p}-${i}`}>
             {p === "dots" ? (
@@ -72,17 +78,16 @@ export default function Pagination({ page, totalPages, type }: Pagination) {
             ) : p === page ? (
               <span className={`${baseItem} ${selected}`}>{p}</span>
             ) : (
-              <Link href={withPostal(p)} className={`${baseItem} ${idle}`}>
+              <Link href={buildHref(p)} className={`${baseItem} ${idle}`}>
                 {p}
               </Link>
             )}
           </li>
         ))}
 
-        {/* NEXT BUTTON */}
         <li>
           {page < totalPages ? (
-            <Link href={withPostal(page + 1)} rel="next" className={`${baseItem} ${idle}`}>
+            <Link href={buildHref(page + 1)} rel="next" className={`${baseItem} ${idle}`}>
               <ChevronRight className="size-10" />
             </Link>
           ) : (
@@ -91,7 +96,6 @@ export default function Pagination({ page, totalPages, type }: Pagination) {
             </span>
           )}
         </li>
-
       </ul>
     </nav>
   );
