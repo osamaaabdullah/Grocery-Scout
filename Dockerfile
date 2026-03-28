@@ -28,7 +28,7 @@ RUN poetry config virtualenvs.create false \
 
 # ---------- 8. Copy and install scraper as a package ----------
 COPY scraper ./scraper
-RUN cd scraper && pip install --no-cache-dir .
+RUN pip install --no-cache-dir --force-reinstall ./scraper
 
 # ---------- 9. Copy backend ----------
 COPY backend ./backend
