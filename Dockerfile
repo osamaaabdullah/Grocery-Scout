@@ -26,9 +26,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN poetry config virtualenvs.create false \
  && poetry install --no-interaction --no-ansi --no-root
 
-# ---------- 8. Copy source code ----------
+# ---------- 8. Copy and install scraper as a package ----------
+COPY scraper ./scraper
+RUN cd scraper && pip install --no-cache-dir .
+
+# ---------- 9. Copy backend ----------
 COPY backend ./backend
 
-# ---------- 9. Expose and start ----------
+# ---------- 10. Expose and start ----------
 EXPOSE 8000
 CMD ["poetry", "run", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
