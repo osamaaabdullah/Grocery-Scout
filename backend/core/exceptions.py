@@ -1,4 +1,6 @@
 from fastapi import HTTPException, status
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
 
 
 class AppError(Exception):
@@ -85,3 +87,6 @@ def to_http_exception(exc: AppError) -> HTTPException:
         detail = exc.errors
 
     return HTTPException(status_code=status_code, detail=detail)
+
+def setup_exception_handlers(app):
+    app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
