@@ -22,11 +22,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
  && rm -rf /var/lib/apt/lists/*
 
-# ---------- 7. Install dependencies ----------
+# ---------- 7. Install backend dependencies ----------
 RUN poetry config virtualenvs.create false \
  && poetry install --no-interaction --no-ansi --no-root
 
-# ---------- 8. Copy and install scraper as a package ----------
+# ---------- 8. Copy and install scraper ----------
+ARG SCRAPER_CACHE_BUST=1
 COPY scraper ./scraper
 RUN pip install --no-cache-dir --force-reinstall ./scraper
 
@@ -36,4 +37,3 @@ COPY backend ./backend
 # ---------- 10. Expose and start ----------
 EXPOSE 8000
 CMD ["poetry", "run", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
-
