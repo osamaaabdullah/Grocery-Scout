@@ -23,7 +23,6 @@ export default function Postalbar({
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Load postal + distance from URL on first render
   useEffect(() => {
     const urlPostal = searchParams.get("postal_code");
     const urlDistance = searchParams.get("set_distance");
@@ -32,7 +31,7 @@ export default function Postalbar({
     if (urlDistance && !distance) setDistance(urlDistance);
   }, []);
 
-  // --- NEXT.JS NAVIGATION UPDATE ---
+  
   const updateURLParams = (postal: string, dist: string) => {
     const url = new URL(window.location.href);
 
@@ -145,9 +144,10 @@ export default function Postalbar({
                 className="border border-gray-200 rounded-md text-sm p-1"
               >
                 <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
                 <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="25">25</option>
               </select>
             </div>
 
