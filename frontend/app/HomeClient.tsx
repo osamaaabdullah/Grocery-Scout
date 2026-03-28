@@ -9,6 +9,7 @@ import { useSearchParams } from "next/navigation";
 interface Product {
   product_id: string;
   retailer: string;
+  store_id: string;
   province: string;
   product_name: string;
   product_size: string;
@@ -26,7 +27,7 @@ interface Product {
 
 export default function Home() {
   const searchParams = useSearchParams();
-  const postalCode = searchParams.get("postal_code");
+  const postalCode = searchParams.get("postal_code") || process.env.NEXT_PUBLIC_DEFAULT_POSTAL_CODE || "M3J1P3";
   const setDistance = searchParams.get("set_distance") || "5";
 
   const [vegetables, setVegetables] = useState<Product[]>([]);
@@ -39,13 +40,8 @@ export default function Home() {
       try {
         setLoading(true);
 
-        const vegURL = postalCode
-          ? `/api/search?search=tomato%20roma&postal_code=${postalCode}&set_distance=${setDistance}&category=vegetable`
-          : `/api/search?search=tomato%20roma&category=vegetable`;
-
-        const fruitURL = postalCode
-          ? `/api/search?search=apple%20gala&postal_code=${postalCode}&set_distance=${setDistance}&category=fruit`
-          : `/api/search?search=apple%20gala&category=fruit`;
+        const vegURL = `/api/search?search=${process.env.NEXT_PUBLIC_DEFAULT_VEGETABLE_NAME}&postal_code=${postalCode}&set_distance=${setDistance}&category=vegetable`;
+        const fruitURL = `/api/search?search=${process.env.NEXT_PUBLIC_DEFAULT_FRUIT_NAME}&postal_code=${postalCode}&set_distance=${setDistance}&category=fruit`;
 
         const [vegRes, fruitRes] = await Promise.all([fetch(vegURL), fetch(fruitURL)]);
 
@@ -70,8 +66,8 @@ export default function Home() {
           return [...unique, ...fallback].slice(0, 6);
         }
 
-        setVegetables(pickUniqueRetailers(vegData.main_results));
-        setFruits(pickUniqueRetailers(fruitData.main_results));
+        setVegetables(pickUniqueRetailers(vegData.results));
+        setFruits(pickUniqueRetailers(fruitData.results));
       } catch (err) {
         console.error("Error fetching data:", err);
       } finally {
@@ -134,7 +130,7 @@ export default function Home() {
               <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4 ">
                 {vegetables.map((item) => (
                   <div
-                    key={`${item.retailer}-${item.product_id}`}
+                    key={`${item.retailer}-${item.store_id}-${item.product_id}`}
                     className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md min-h-120 xl:h-140 flex flex-col bg-white"
                   >
                     <div className="h-1/2 flex items-center justify-center">
@@ -147,7 +143,7 @@ export default function Home() {
                       />
                     </div>
                     <div className="h-40/100 flex flex-col justify-between">
-                      <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…": item.product_name}</p>
+                      <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…" : item.product_name}</p>
                       <div>
                         <p className="text-sm text-base">{item.retailer}</p>
                         <p>{item.province}</p>
@@ -162,7 +158,7 @@ export default function Home() {
                       </div>
                       <div className="mb-3">
                         {item.multi_save_qty && item.multi_save_price && (<span className="text-white bg-[#FCB53B] border-none p-0.5 rounded px-2">{item.multi_save_qty} for ${item.multi_save_price}</span>)}
-                        <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2"> Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", {day: "2-digit", month: "short"})}</span>
+                        <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2"> Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}</span>
                       </div>
                       <div>
                         <a href={item.product_url} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">
@@ -180,7 +176,7 @@ export default function Home() {
               <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4 ">
                 {fruits.map((item) => (
                   <div
-                    key={`${item.retailer}-${item.product_id}`}
+                    key={`${item.retailer}-${item.store_id}-${item.product_id}`}
                     className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md h-140 flex flex-col bg-white"
                   >
                     <div className="h-1/2 flex items-center justify-center">
@@ -193,7 +189,7 @@ export default function Home() {
                       />
                     </div>
                     <div className="h-40/100 flex flex-col justify-between">
-                      <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…": item.product_name}</p>
+                      <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…" : item.product_name}</p>
                       <div>
                         <p className="text-sm text-base">{item.retailer}</p>
                         <p>{item.province}</p>
@@ -208,7 +204,7 @@ export default function Home() {
                       </div>
                       <div className="mb-3">
                         {item.multi_save_qty && item.multi_save_price && (<span className="text-white bg-[#FCB53B] border-none p-0.5 rounded px-2">{item.multi_save_qty} for ${item.multi_save_price}</span>)}
-                        <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2"> Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", {day: "2-digit", month: "short"})}</span>
+                        <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2"> Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}</span>
                       </div>
                       <div>
                         <a href={item.product_url} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">
