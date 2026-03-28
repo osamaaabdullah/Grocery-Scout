@@ -2,10 +2,11 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from backend.routers import store_router, product_router,price_router, province_router, auth_router, user_router
 from fastapi.middleware.cors import CORSMiddleware
-from backend.core.exceptions import AppError, to_http_exception
+from backend.core.exceptions import AppError, to_http_exception, setup_exception_handlers
 from backend.core.config import get_settings
+from backend.middleware.rate_limit import setup_rate_limiting, limiter
 
-app = FastAPI(title="Grocery Scout API", version="1.0.0")
+app = FastAPI(title="Grocery Scout API", version="2.0.0")
 settings = get_settings()
 
 origins = [
@@ -22,6 +23,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+setup_exception_handlers(app)
+setup_rate_limiting(app)
 
 @app.get("/")
 async def read_root():
@@ -33,6 +36,7 @@ async def read_root():
     }
 
 @app.get("/health")
+@limiter.exempt
 async def health():
     return {"status": "ok"}
 
