@@ -39,7 +39,59 @@ export default function ResultsClient({ results, search, postalCode }: ResultsCl
 
       {results.length === 0 && <p>No results found.</p>}
 
-      <div className="grid [@media(max-width:800px)]:grid-cols-2 grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+      {/* ROW LAYOUT — below 500px */}
+      <div className="flex flex-col gap-3 [@media(min-width:500px)]:hidden">
+        {results.map((item, index) => (
+          <div
+            key={`${item.retailer}-${item.product_id}-${index}`}
+            className="border border-zinc-100 rounded-xl p-3 shadow hover:shadow-md flex flex-row gap-4 bg-white items-center"
+          >
+            <div className="shrink-0">
+              <Image
+                src={item.image_url && !item.image_url.includes("?v=") ? item.image_url : "/no_image.webp"}
+                alt={item.product_name.length > 40 ? item.product_name.slice(0, 40) + "…" : item.product_name}
+                width={80}
+                height={80}
+                className="object-contain"
+              />
+            </div>
+            <div className="flex flex-col flex-1 gap-1 min-w-0">
+              <p className="font-semibold text-sm leading-tight">
+                {item.product_name.length > 60 ? item.product_name.slice(0, 60) + "…" : item.product_name}
+              </p>
+              <p className="text-xs text-gray-500">{item.retailer} · {item.store_name ?? item.city}</p>
+              <p className="text-xs text-gray-400">{item.category}</p>
+            </div>
+            <div className="shrink-0 flex flex-col items-end gap-2">
+              <p className="font-bold text-base">
+                ${item.current_price.toFixed(2)} <span className="text-xs font-normal">{(item.unit_type || "EA").toLowerCase()}</span>
+              </p>
+              <div className="flex flex-wrap gap-1 justify-end">
+                {item.multi_save_qty && item.multi_save_price && (
+                  <span className="text-white bg-[#FCB53B] text-xs p-0.5 rounded px-2 whitespace-nowrap">
+                    {item.multi_save_qty} for ${item.multi_save_price}
+                  </span>
+                )}
+                {item.timestamp && (
+                  <span className="text-white bg-[#97B067] text-xs p-0.5 rounded px-2 whitespace-nowrap">
+                    Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}
+                  </span>
+                )}
+              </div>
+              <a
+                href={item.product_url}
+                target="_blank"
+                className="bg-[#D4F6FF] text-xs p-1.5 px-3 rounded-full whitespace-nowrap"
+              >
+                View Product
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* GRID LAYOUT — 500px and above */}
+      <div className="hidden [@media(min-width:500px)]:grid [@media(max-width:800px)]:grid-cols-2 grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
         {results.map((item, index) => (
           <div
             key={`${item.retailer}-${item.product_id}-${index}`}
@@ -64,15 +116,9 @@ export default function ResultsClient({ results, search, postalCode }: ResultsCl
                 <p className="text-sm">{item.category}</p>
               </div>
               <div>
-                {item.price_unit === "¢" ? (
-                  <p className="font-bold">
-                    ${(item.current_price / 100).toFixed(2)} {(item.unit_type || "EA").toLowerCase()}
-                  </p>
-                ) : (
-                  <p className="font-bold">
-                    ${item.current_price.toFixed(2)} {(item.unit_type || "EA").toLowerCase()}
-                  </p>
-                )}
+                <p className="font-bold">
+                  ${item.current_price.toFixed(2)} {(item.unit_type || "EA").toLowerCase()}
+                </p>
               </div>
               <div className="mb-3">
                 {item.multi_save_qty && item.multi_save_price && (
@@ -80,13 +126,11 @@ export default function ResultsClient({ results, search, postalCode }: ResultsCl
                     {item.multi_save_qty} for ${item.multi_save_price}
                   </span>
                 )}
-                {item.timestamp
-                  && (
-                    <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2">
-                      Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}
-                    </span>
-                  )
-                }
+                {item.timestamp && (
+                  <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2 whitespace-nowrap">
+                    Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}
+                  </span>
+                )}
               </div>
               <div>
                 <a

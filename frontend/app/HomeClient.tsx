@@ -10,6 +10,8 @@ interface Product {
   product_id: string;
   retailer: string;
   store_id: string;
+  store_name?: string;
+  city?: string;
   province: string;
   product_name: string;
   product_size: string;
@@ -23,6 +25,115 @@ interface Product {
   multi_save_qty: number;
   multi_save_price: number;
   timestamp: string;
+}
+
+function ProductGrid({ items }: { items: Product[] }) {
+  return (
+    <>
+      {/* ROW LAYOUT — below 500px */}
+      <div className="flex flex-col gap-3 [@media(min-width:500px)]:hidden">
+        {items.map((item) => (
+          <div
+            key={`${item.retailer}-${item.store_id}-${item.product_id}`}
+            className="border border-zinc-100 rounded-xl p-3 shadow hover:shadow-md flex flex-row gap-4 bg-white items-center"
+          >
+            <div className="shrink-0">
+              <Image
+                src={item.image_url && !item.image_url.includes("?v=") ? item.image_url : "/no_image.webp"}
+                alt={item.product_name.length > 40 ? item.product_name.slice(0, 40) + "…" : item.product_name}
+                width={80}
+                height={80}
+                className="object-contain"
+              />
+            </div>
+            <div className="flex flex-col flex-1 gap-1 min-w-0">
+              <p className="font-semibold text-sm leading-tight">
+                {item.product_name.length > 60 ? item.product_name.slice(0, 60) + "…" : item.product_name}
+              </p>
+              <p className="text-xs text-gray-500">{item.retailer} · {item.store_name ?? item.city ?? item.province}</p>
+              <p className="text-xs text-gray-400">{item.category}</p>
+            </div>
+            <div className="shrink-0 flex flex-col items-end gap-2">
+              <p className="font-bold text-base">
+                ${item.current_price.toFixed(2)} <span className="text-xs font-normal">{(item.unit_type || "EA").toLowerCase()}</span>
+              </p>
+              <div className="flex flex-wrap gap-1 justify-end">
+                {item.multi_save_qty && item.multi_save_price && (
+                  <span className="text-white bg-[#FCB53B] text-xs p-0.5 rounded px-2 whitespace-nowrap">
+                    {item.multi_save_qty} for ${item.multi_save_price}
+                  </span>
+                )}
+                {item.timestamp && (
+                  <span className="text-white bg-[#97B067] text-xs p-0.5 rounded px-2 whitespace-nowrap">
+                    Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}
+                  </span>
+                )}
+              </div>
+              <a
+                href={item.product_url}
+                target="_blank"
+                className="bg-[#D4F6FF] text-xs p-1.5 px-3 rounded-full whitespace-nowrap"
+              >
+                View Product
+              </a>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* GRID LAYOUT — 500px and above */}
+      <div className="hidden [@media(min-width:500px)]:grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4">
+        {items.map((item) => (
+          <div
+            key={`${item.retailer}-${item.store_id}-${item.product_id}`}
+            className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md min-h-120 xl:h-140 flex flex-col bg-white"
+          >
+            <div className="h-1/2 flex items-center justify-center">
+              <Image
+                src={item.image_url && !item.image_url.includes("?v=") ? item.image_url : "/no_image.webp"}
+                alt={item.product_name.length > 40 ? item.product_name.slice(0, 40) + "…" : item.product_name}
+                width={150}
+                height={150}
+                className="mx-auto object-contain"
+              />
+            </div>
+            <div className="h-40/100 flex flex-col justify-between">
+              <p className="min-h-12 font-semibold text-base">
+                {item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…" : item.product_name}
+              </p>
+              <div>
+                <p className="text-sm">{item.retailer}</p>
+                <p className="text-sm">{item.store_name ?? item.city ?? item.province}</p>
+                <p className="text-sm">{item.category}</p>
+              </div>
+              <div>
+                <p className="font-bold">
+                  ${item.current_price.toFixed(2)} {(item.unit_type || "EA").toLowerCase()}
+                </p>
+              </div>
+              <div className="mb-3">
+                {item.multi_save_qty && item.multi_save_price && (
+                  <span className="text-white bg-[#FCB53B] border-none p-0.5 rounded px-2">
+                    {item.multi_save_qty} for ${item.multi_save_price}
+                  </span>
+                )}
+                {item.timestamp && (
+                  <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2 whitespace-nowrap">
+                    Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}
+                  </span>
+                )}
+              </div>
+              <div>
+                <a href={item.product_url} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">
+                  View Product
+                </a>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </>
+  );
 }
 
 export default function Home() {
@@ -106,7 +217,6 @@ export default function Home() {
                 Sign up for Free
               </button>
             </Link>
-
             <Link href="/login">
               <button className="m-2 p-3 min-w-[120px] font-bold rounded-full bg-[#D4F6FF] shadow hover:shadow-md cursor-pointer">
                 Log In
@@ -127,94 +237,12 @@ export default function Home() {
           <>
             <section className="mt-10">
               <h3 className="font-semibold text-center xl:text-left text-xl mb-4">Compare Vegetable Prices</h3>
-              <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4 ">
-                {vegetables.map((item) => (
-                  <div
-                    key={`${item.retailer}-${item.store_id}-${item.product_id}`}
-                    className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md min-h-120 xl:h-140 flex flex-col bg-white"
-                  >
-                    <div className="h-1/2 flex items-center justify-center">
-                      <Image
-                        src={item.image_url}
-                        alt={item.product_name}
-                        width={150}
-                        height={150}
-                        className="mx-auto object-contain"
-                      />
-                    </div>
-                    <div className="h-40/100 flex flex-col justify-between">
-                      <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…" : item.product_name}</p>
-                      <div>
-                        <p className="text-sm text-base">{item.retailer}</p>
-                        <p>{item.province}</p>
-                        <p>{item.category}</p>
-                      </div>
-                      <div>
-                        {item.price_unit === "¢" ? (
-                          <p className="font-bold">${(item.current_price / 100).toFixed(2)} {(item.unit_type || "EA").toLowerCase()}</p>
-                        ) : (
-                          <p className="font-bold">${item.current_price.toFixed(2)} {(item.unit_type || "EA").toLowerCase()}</p>
-                        )}
-                      </div>
-                      <div className="mb-3">
-                        {item.multi_save_qty && item.multi_save_price && (<span className="text-white bg-[#FCB53B] border-none p-0.5 rounded px-2">{item.multi_save_qty} for ${item.multi_save_price}</span>)}
-                        <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2"> Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}</span>
-                      </div>
-                      <div>
-                        <a href={item.product_url} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">
-                          View Product
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ProductGrid items={vegetables} />
             </section>
 
             <section className="mt-10">
               <h3 className="font-semibold text-center xl:text-left text-xl mb-4">Compare Fruits Prices</h3>
-              <div className="grid [@media(max-width:480px)]:grid-cols-1 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5 3xl:grid-cols-6 gap-4 ">
-                {fruits.map((item) => (
-                  <div
-                    key={`${item.retailer}-${item.store_id}-${item.product_id}`}
-                    className="border border-zinc-100 rounded-lg p-2 text-center shadow hover:shadow-md h-140 flex flex-col bg-white"
-                  >
-                    <div className="h-1/2 flex items-center justify-center">
-                      <Image
-                        src={item.image_url}
-                        alt={item.product_name}
-                        width={120}
-                        height={120}
-                        className="mx-auto object-contain"
-                      />
-                    </div>
-                    <div className="h-40/100 flex flex-col justify-between">
-                      <p className="min-h-12 font-semibold text-base">{item.product_name.length > 50 ? item.product_name.slice(0, 50) + "…" : item.product_name}</p>
-                      <div>
-                        <p className="text-sm text-base">{item.retailer}</p>
-                        <p>{item.province}</p>
-                        <p>{item.category}</p>
-                      </div>
-                      <div>
-                        {item.price_unit === "¢" ? (
-                          <p className="font-bold">${(item.current_price / 100).toFixed(2)} {(item.unit_type || "EA").toLowerCase()}</p>
-                        ) : (
-                          <p className="font-bold">${item.current_price.toFixed(2)} {(item.unit_type || "EA").toLowerCase()}</p>
-                        )}
-                      </div>
-                      <div className="mb-3">
-                        {item.multi_save_qty && item.multi_save_price && (<span className="text-white bg-[#FCB53B] border-none p-0.5 rounded px-2">{item.multi_save_qty} for ${item.multi_save_price}</span>)}
-                        <span className="text-white bg-[#97B067] border-none mx-2 p-0.5 rounded px-2"> Updated: {new Date(item.timestamp).toLocaleDateString("en-CA", { day: "2-digit", month: "short" })}</span>
-                      </div>
-                      <div>
-                        <a href={item.product_url} target="_blank" className="bg-[#D4F6FF] mt-2 mx-auto p-2 pl-4 pr-4 rounded-full">
-                          View Product
-                        </a>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <ProductGrid items={fruits} />
             </section>
           </>
         )}
