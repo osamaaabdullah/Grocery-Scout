@@ -6,6 +6,7 @@ import Postalbar from "@/components/Postalbar";
 import { Suspense } from "react";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
+import { LocationProvider } from "@/context/LocationContext";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -26,22 +27,25 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Suspense fallback={null}>
-          <div className="sm:w-9/10 mx-auto 3xl:w-8/10">
-            <Navbar />
-          </div>
+          <LocationProvider>
+            <div className="sm:w-9/10 mx-auto 3xl:w-8/10">
+              <Navbar />
+            </div>
 
-          <div className="[@media(min-width:480px)]:hidden w-95/100 m-1 mx-auto">
-            <Postalbar />
-          </div>
+            {/* MOBILE POSTALBAR — below navbar, hidden on desktop */}
+            <div className="[@media(min-width:480px)]:hidden w-95/100 m-1 mx-auto">
+              <Postalbar />
+            </div>
+
+            <hr className="border-zinc-300" />
+
+            {children}
+            <Analytics />
+            <SpeedInsights />
+
+            <hr className="border-zinc-300 mt-20 mb-20" />
+          </LocationProvider>
         </Suspense>
-
-        <hr className="border-zinc-300" />
-
-        {children}
-        <Analytics />
-        <SpeedInsights />
-
-        <hr className="border-zinc-300 mt-20 mb-20" />
       </body>
     </html>
   );
