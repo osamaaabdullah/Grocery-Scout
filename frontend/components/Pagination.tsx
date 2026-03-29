@@ -6,10 +6,16 @@ import Link from "next/link";
 interface PaginationProps {
   page: number;
   totalPages: number;
+  // Products mode
   type?: string;
+  // Search results mode
   search?: string;
   postalCode?: string;
   distance?: string;
+  category?: string;
+  retailer?: string;
+  sortBy?: string;
+  multiOffer?: string;
 }
 
 function buildPages(current: number, total: number): Array<number | "dots"> {
@@ -32,21 +38,23 @@ function buildPages(current: number, total: number): Array<number | "dots"> {
   return pages;
 }
 
-export default function Pagination({ page, totalPages, type, search, postalCode, distance }: PaginationProps) {
+export default function Pagination({ page, totalPages, type, search, postalCode, distance, category, retailer, sortBy, multiOffer }: PaginationProps) {
   const pages = buildPages(page, totalPages);
 
   const buildHref = (p: number) => {
     if (type) {
-      // Products mode
       return postalCode
         ? `/products/${type}/page/${p}?postal_code=${postalCode}`
         : `/products/${type}/page/${p}`;
     }
-    // Search results mode
     const params = new URLSearchParams();
     if (search) params.set("search", search);
     if (postalCode) params.set("postal_code", postalCode);
     if (distance) params.set("set_distance", distance);
+    if (category) params.set("category", category);
+    if (retailer) params.set("retailer", retailer);
+    if (sortBy) params.set("sort_by", sortBy);
+    if (multiOffer) params.set("multi_offer", multiOffer);
     params.set("page", String(p));
     return `/results?${params.toString()}`;
   };
