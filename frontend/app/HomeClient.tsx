@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import SearchBar from "@/components/SearchBar";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { useLocation } from "@/context/LocationContext";
 
 interface Product {
   product_id: string;
@@ -137,9 +137,7 @@ function ProductGrid({ items }: { items: Product[] }) {
 }
 
 export default function Home() {
-  const searchParams = useSearchParams();
-  const postalCode = searchParams.get("postal_code") || process.env.NEXT_PUBLIC_DEFAULT_POSTAL_CODE || "M3J1P3";
-  const setDistance = searchParams.get("set_distance") || "5";
+  const { postalCode, distance: setDistance } = useLocation();
 
   const [vegetables, setVegetables] = useState<Product[]>([]);
   const [fruits, setFruits] = useState<Product[]>([]);
