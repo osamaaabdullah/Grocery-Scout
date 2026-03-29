@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from fastapi import Depends
 from backend.dependencies.db import get_read_db, get_write_db
 from typing import Annotated
+from backend.middleware.rate_limit import limiter
 
 router = APIRouter(tags = ["Products"])
 
@@ -17,6 +18,7 @@ async def upsert_product(product: ProductCreate, db: Session = Depends(get_write
     return product_services.upsert_product(db, product)
 
 @router.post("/products")
+@limiter.exempt
 async def upsert_products(products: list[ProductCreate], db: Session = Depends(get_write_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return product_services.upsert_products(db,products)
     
