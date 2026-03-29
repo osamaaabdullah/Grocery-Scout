@@ -12,6 +12,7 @@ from typing import Annotated
 from backend.dependencies.auth import role_required
 from backend.core.exceptions import InvalidPostalCodeError
 from backend.services.search import search_products_with_live_prices
+from backend.middleware.rate_limit import limiter
 
 router = APIRouter(tags=["Individual Store Prices"])
 
@@ -20,6 +21,7 @@ async def upsert_price(price: PriceCreate, db: Session = Depends(get_write_db), 
     return price_services.upsert_price(db, price)
 
 @router.post("/prices")
+@limiter.exempt
 async def upsert_prices(prices: list[PriceCreate], db: Session = Depends(get_write_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return price_services.upsert_prices(db,prices) 
 
@@ -52,6 +54,7 @@ async def delete_price(product_id: str, db: Session = Depends(get_write_db), cur
     return price_services.delete_price(db,product_id)
 
 @router.post("/price/history")
+@limiter.exempt
 async def create_product_histories(data: list[PriceHistoryCreate], db: Session = Depends(get_write_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return price_services.bulk_insert_product_price_history(db,data)
 
