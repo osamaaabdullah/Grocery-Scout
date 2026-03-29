@@ -5,26 +5,18 @@ import Link from "next/link";
 import SearchBar from "./SearchBar";
 import { Menu, X } from "lucide-react";
 import { useState, useEffect } from "react";
+import { useLocation } from "@/context/LocationContext";
 import Postalbar from "./Postalbar";
-import { useSearchParams } from "next/navigation";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [postalCode, setPostalCode] = useState("");
-  const [distance, setDistance] = useState("5");
   const [loggedIn, setLoggedIn] = useState(false);
-
-  const searchParams = useSearchParams();
-  const currentPostal = searchParams.get("postal_code") ?? "";
+  const { postalCode } = useLocation();
 
   useEffect(() => {
     const t = localStorage.getItem("access_token");
     if (t) setLoggedIn(true);
-
-    if (currentPostal) {
-      setPostalCode(currentPostal);
-    }
-  }, [currentPostal]);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("access_token");
@@ -44,16 +36,11 @@ export default function Navbar() {
         </div>
 
         <div className="flex-auto p-1 rounded-full content-center border border-zinc-100 inset-shadow-2xs shadow-2xs hover:shadow-md w-1/2 h-10 my-auto max-w-[500px]">
-          <SearchBar postalCode={postalCode} distance={distance} />
+          <SearchBar />
         </div>
 
         <div className="[@media(max-width:480px)]:hidden my-auto ml-2">
-          <Postalbar
-            postalCode={postalCode}
-            setPostalCode={setPostalCode}
-            distance={distance}
-            setDistance={setDistance}
-          />
+          <Postalbar />
         </div>
       </div>
 
@@ -70,30 +57,16 @@ export default function Navbar() {
             <li className="p-2 hover:bg-zinc-100 rounded-md">
               <Link href={withPostal("/")}>Home</Link>
             </li>
-
             <li className="p-2 hover:bg-zinc-100 rounded-md">
               <Link href={withPostal("/products/multi-offers/page/1")}>Multi Offers</Link>
             </li>
-
-            {/* <li className="p-2 hover:bg-zinc-100 rounded-md">
-              <Link href={withPostal("/products/vegetable/page/1")}>Vegetables</Link>
-            </li>
-
-            <li className="p-2 hover:bg-zinc-100 rounded-md">
-              <Link href={withPostal("/products/fruit/page/1")}>Fruits</Link>
-            </li> */}
-
             {!loggedIn && (
               <li className="p-2 hover:bg-zinc-100 rounded-md">
                 <Link href={withPostal("/signup")}>Sign up</Link>
               </li>
             )}
-
             {loggedIn ? (
-              <li
-                onClick={handleLogout}
-                className="p-2 hover:bg-zinc-100 rounded-md cursor-pointer"
-              >
+              <li onClick={handleLogout} className="p-2 hover:bg-zinc-100 rounded-md cursor-pointer">
                 Logout
               </li>
             ) : (
@@ -110,34 +83,16 @@ export default function Navbar() {
         <li className="hover:bg-zinc-200 p-3 rounded-md">
           <Link href={withPostal("/")}>Home</Link>
         </li>
-
         <li className="hover:bg-zinc-200 p-3 rounded-md">
           <Link href={withPostal("/products/multi-offers/page/1")}>Check Multi Offers</Link>
         </li>
-
-        {/* <li className="hover:bg-zinc-200 p-3 rounded-md">
-          <Link href={withPostal("/products/vegetable/page/1")}>
-            Compare Vegetable Prices
-          </Link>
-        </li>
-
-        <li className="hidden 3xl:block hover:bg-zinc-200 p-3 rounded-md">
-          <Link href={withPostal("/products/fruit/page/1")}>
-            Compare Fruit Prices
-          </Link>
-        </li> */}
-
         {!loggedIn && (
           <li className="hover:bg-zinc-200 p-3 rounded-md bg-[#D4F6FF] font-bold">
             <Link href={withPostal("/signup")}>Sign up</Link>
           </li>
         )}
-
         {loggedIn ? (
-          <li
-            onClick={handleLogout}
-            className="hover:bg-zinc-200 p-3 rounded-md bg-[#D4F6FF] font-bold cursor-pointer"
-          >
+          <li onClick={handleLogout} className="hover:bg-zinc-200 p-3 rounded-md bg-[#D4F6FF] font-bold cursor-pointer">
             Logout
           </li>
         ) : (
