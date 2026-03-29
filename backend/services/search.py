@@ -38,7 +38,7 @@ def _product_info(product: Product, price_source, store: dict, source: str, is_s
     }
 
 
-def search_products_with_live_prices(db: Session, search_str: str, nearest_stores: list[dict], category: str | None = None, multi_offer: bool = False, page: int = 1, limit: int = 20) -> dict:
+def search_products_with_live_prices(db: Session, search_str: str, nearest_stores: list[dict], category: str | None = None, retailer: str | None = None, multi_offer: bool = False, sort_by: str = "relevance", page: int = 1, limit: int = 20) -> dict:
     search_str = search_str.strip()
     province = nearest_stores[0]["store_province"] if nearest_stores else "ON"
 
@@ -56,11 +56,18 @@ def search_products_with_live_prices(db: Session, search_str: str, nearest_store
     )
     if category:
         catalog_query = catalog_query.filter(Product.category.ilike(f"%{category.strip()}%"))
+    if retailer:
+        catalog_query = catalog_query.filter(Product.retailer == retailer)
     if multi_offer:
         catalog_query = catalog_query.filter(ProvincePrice.multi_save_qty.isnot(None))
         
     nearest_retailers = [(store["retailer"], store["store_province"]) for store in nearest_stores]
     catalog_query = catalog_query.filter(tuple_(Product.retailer, ProvincePrice.province).in_(nearest_retailers))
+    
+    if sort_by == "price_asc":
+        catalog_query = catalog_query.order_by(ProvincePrice.current_price.asc())
+    elif sort_by == "price_desc":
+        catalog_query = catalog_query.order_by(ProvincePrice.current_price.desc())
 
     total_count = catalog_query.count()
     catalog_results: list[tuple[Product, ProvincePrice]] = (
