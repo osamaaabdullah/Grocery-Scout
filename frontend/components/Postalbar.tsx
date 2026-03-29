@@ -1,44 +1,27 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { MapPinned, ChevronDown, LocateFixed } from "lucide-react";
+import { useLocation } from "@/context/LocationContext";
 
-interface PostalbarProps {
-  postalCode?: string;
-  setPostalCode?: (code: string) => void;
-  distance?: string;
-  setDistance?: (dist: string) => void;
-}
-
-export default function Postalbar({
-  postalCode = "",
-  setPostalCode = () => {},
-  distance = "5",
-  setDistance = () => {},
-}: PostalbarProps) {
+export default function Postalbar() {
+  const { postalCode, setPostalCode, distance, setDistance } = useLocation();
   const [open, setOpen] = useState(false);
   const [loadingLocation, setLoadingLocation] = useState(false);
+  const [inputValue, setInputValue] = useState(postalCode);
 
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   useEffect(() => {
-    const urlPostal = searchParams.get("postal_code");
-    const urlDistance = searchParams.get("set_distance");
+    setInputValue(postalCode);
+  }, [postalCode]);
 
-    if (urlPostal && !postalCode) setPostalCode(urlPostal);
-    if (urlDistance && !distance) setDistance(urlDistance);
-  }, []);
-
-  
   const updateURLParams = (postal: string, dist: string) => {
     const url = new URL(window.location.href);
-
     if (postal) url.searchParams.set("postal_code", postal);
     if (dist) url.searchParams.set("set_distance", dist);
-
-    router.replace(url.toString()); // <--- KEY FIX
+    router.replace(url.toString());
   };
 
   const handleUseLocation = () => {
@@ -55,7 +38,6 @@ export default function Postalbar({
 
           if (data.address.postcode) {
             const pc = data.address.postcode;
-
             setPostalCode(pc);
             updateURLParams(pc, distance);
           } else {
@@ -98,20 +80,21 @@ export default function Postalbar({
       {open && (
         <div className="absolute mt-2 w-60 bg-white border border-gray-100 rounded-xl shadow-lg z-50 p-3 [@media(max-width:480px)]:w-full">
           <div className="flex flex-col gap-2">
-
-            {/* POSTAL CODE INPUT */}
             <div className="mt-3 flex gap-2 items-center">
               <input
                 type="text"
                 placeholder="Enter postal code"
-                value={postalCode}
-                onChange={(e) => setPostalCode(e.target.value)}
+                value={inputValue}
+                onChange={(e) => {
+                  setInputValue(e.target.value);
+                  setPostalCode(e.target.value);
+                }}
+                style={{ color: "#171717", backgroundColor: "#ffffff" }}
                 className="border border-gray-200 rounded-full px-3 py-2 w-40 [@media(max-width:480px)]:w-full"
               />
-
               <button
                 onClick={() => {
-                  updateURLParams(postalCode, distance);
+                  updateURLParams(inputValue, distance);
                   setOpen(false);
                 }}
                 className="text-sm font-bold hover:underline m-2 p-2 mx-auto bg-[#D4F6FF] rounded-full"
@@ -120,7 +103,6 @@ export default function Postalbar({
               </button>
             </div>
 
-            {/* USE MY LOCATION */}
             <button
               onClick={handleUseLocation}
               disabled={loadingLocation}
@@ -130,7 +112,6 @@ export default function Postalbar({
               {loadingLocation ? "Detecting..." : "Use My Location"}
             </button>
 
-            {/* DISTANCE SELECT */}
             <div className="flex items-center justify-between px-3 py-2 mt-1 border-t border-gray-100">
               <label className="text-sm text-gray-600">Distance (km)</label>
               <select
@@ -138,7 +119,7 @@ export default function Postalbar({
                 onChange={(e) => {
                   const dist = e.target.value;
                   setDistance(dist);
-                  updateURLParams(postalCode, dist);
+                  updateURLParams(inputValue, dist);
                   setOpen(false);
                 }}
                 className="border border-gray-200 rounded-md text-sm p-1"
@@ -150,7 +131,6 @@ export default function Postalbar({
                 <option value="5">5</option>
               </select>
             </div>
-
           </div>
         </div>
       )}
