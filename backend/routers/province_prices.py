@@ -1,6 +1,4 @@
 import backend.services.province_prices as province_price_services
-import backend.services.stores as store_services
-import backend.services.geocode as geocode_services
 
 from fastapi import APIRouter
 from backend.schemas.province_price import ProvincePriceCreate
@@ -10,7 +8,7 @@ from backend.dependencies.db import get_read_db, get_write_db
 from backend.models.user import User
 from typing import Annotated
 from backend.dependencies.auth import role_required
-from backend.core.exceptions import InvalidPostalCodeError
+from backend.middleware.rate_limit import limiter
 
 router = APIRouter(prefix="/province", tags = ["Province prices"])
 
@@ -19,6 +17,7 @@ async def upsert_price(price: ProvincePriceCreate, db: Session = Depends(get_wri
     return province_price_services.upsert_price(db, price)
 
 @router.post("/prices")
+@limiter.exempt
 async def upsert_prices(prices: list[ProvincePriceCreate], db: Session = Depends(get_write_db), current_user: Annotated[User, Depends(role_required("admin"))] = None):
     return province_price_services.upsert_prices(db,prices)
      
